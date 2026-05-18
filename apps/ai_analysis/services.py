@@ -1,13 +1,13 @@
-"""Service facade for AI analysis workflows.
-
-Follows the layered architecture: View -> Service -> UseCase -> Repository.
+"""
+Service facade for AI analysis workflows.
 """
 
 from django.conf import settings
 
-from apps.ai_analysis.client import AiVisionClient, OpenAI
-from apps.ai_analysis.use_cases import AnalyzePhotoUseCase, AnalyzePropertyUseCase
+from apps.ai_analysis.client import AiVisionClient
 from apps.ai_analysis.exceptions import AiAnalysisError
+from apps.ai_analysis.parser import AiAttributeParser
+from apps.ai_analysis.repositories import SubjectiveAttributeRepository
 
 
 class AiAnalysisService:
@@ -17,7 +17,13 @@ class AiAnalysisService:
     and early rather than buried inside a request cycle.
     """
 
-    def __init__(self, base_url=None, api_key=None, model=None):
+    def __init__(
+        self,
+        base_url: str | None = None,
+        api_key: str | None = None,
+        model: str | None = None,
+        client: AiVisionClient | None = None,
+    ) -> None:
         base_url = base_url or settings.AI_API_BASE_URL
         api_key = api_key or settings.AI_API_KEY
         model = model or settings.AI_MODEL
@@ -26,25 +32,39 @@ class AiAnalysisService:
             raise ValueError(
                 "AI_API_BASE_URL and AI_API_KEY must be set in settings / environment."
             )
-        if OpenAI is None:
-            raise ImportError(
-                "openai package is required. Install it with `pip install openai`."
-            )
 
         # Build the concrete HTTP client once and inject it into use-cases.
-        client = AiVisionClient(base_url=base_url, api_key=api_key, model=model)
-        analyze_photo_uc = AnalyzePhotoUseCase(client=client)
-
-        self.analyze_photo_use_case = analyze_photo_uc
-        self.analyze_property_use_case = AnalyzePropertyUseCase(
-            analyze_photo_use_case=analyze_photo_uc
+        self.client = client or AiVisionClient(
+            base_url=base_url,
+            api_key=api_key,
+            model=model,
         )
 
-    def analyze_photo(self, photo, prompt):
+    def analyze_photo(self, photo, prompt: str):
+        """Public API: analyze a single photo and return its attributes."""
+        # handle empty prompts
+        if not prompt:
+            return []
+
         try:
-            return self.analyze_photo_use_case.execute(photo, prompt)
-        except Exception as exc:
+            # Delegate to the AI provider
+            response = self.client.analyze_photo(photo, prompt)
+            # Parse the JSON into a flat list of {attribute_token, strength}
+            attributes = AiAttributeParser.extract_attributes(response)
+            # Persist photo attributes and refresh property aggregates
+            SubjectiveAttributeRepository.replace_photo_attributes(photo, attributes)
+            # Used only for testing/admin purposes (in analyze_property), not needed for the main workflow
+            return attributes
+        except Exception as exc: 
             raise AiAnalysisError(f"Photo {photo.pk}: {exc}") from exc
 
-    def analyze_property(self, property_obj, prompt):
-        return self.analyze_property_use_case.execute(property_obj, prompt)
+    def analyze_property(self, property_obj, prompt: str):
+        """Public API: analyze all photos in a property.
+        Used for on-demand analysis of existing properties, e.g. via admin action."""
+        results: list[dict] = []
+
+        for photo in property_obj.photos.all():
+            attributes = self.analyze_photo(photo, prompt)
+            results.append({"photo_id": photo.id, "attributes": attributes})
+
+        return results
