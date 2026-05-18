@@ -50,12 +50,23 @@ class PropertiesReadSerializer(serializers.ModelSerializer):
     images = PropertiesPhotosSerializer(many=True, read_only=True, source="photos")
     nearby_places = NearbyPlacesSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
+    match_score = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source="owner.name", read_only=True)
     
     def get_average_rating(self, obj):
         if hasattr(obj, "average_rating"):
             return obj.average_rating
         return ReviewUseCase.get_average_rating(obj)
+
+    def get_match_score(self, obj):
+        return getattr(obj, "match_score", None)
+
+    # se match_score não for calculado, remove ele da resposta
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data["match_score"] is None:
+            data.pop("match_score")
+        return data
 
     class Meta:
         model = Properties
