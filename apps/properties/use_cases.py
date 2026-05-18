@@ -58,9 +58,13 @@ class PropertyUseCase:
 class PhotoUseCase:
     @staticmethod
     def create_photo(*, property_obj, validated_data):
-        image = validated_data["image"]
-        order = validated_data["order"]
-        return PhotoRepository.create_photo(property_obj=property_obj, image=image, order=order)
+        image = validated_data.pop('image')
+        order = validated_data.pop("order")
+        return PhotoRepository.create_photo(
+            property_obj=property_obj,
+            image=image,
+            order=order,
+        )
 
     @staticmethod
     def update_photo(instance, validated_data):

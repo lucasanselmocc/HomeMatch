@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.ai_analysis.services import AiAnalysisService
+from apps.ai_analysis.tasks import analyze_property_task
 from apps.properties.models import Properties
 
 
@@ -20,10 +20,16 @@ class AnalyzePropertyView(APIView):
         serializer.is_valid(raise_exception=True)
 
         property_obj = get_object_or_404(Properties, pk=pk)
-        service = AiAnalysisService()
-        result = service.analyze_property(property_obj, serializer.validated_data["prompt"])
+        task = analyze_property_task.delay(
+            property_obj.id,
+            serializer.validated_data["prompt"],
+        )
 
         return Response(
-            {"property_id": property_obj.id, "analysis_count": len(result), "results": result},
-            status=status.HTTP_200_OK,
+            {
+                "property_id": property_obj.id,
+                "task_id": task.id,
+                "status": "queued",
+            },
+            status=status.HTTP_202_ACCEPTED,
         )

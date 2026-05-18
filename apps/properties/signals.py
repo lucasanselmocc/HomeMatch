@@ -1,8 +1,7 @@
 from django.conf import settings
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-from apps.ai_analysis.exceptions import AiAnalysisError
-from apps.ai_analysis.services import AiAnalysisService
+from apps.ai_analysis.tasks import analyze_photo_task
 from .models import Properties, PropertiesPhotos
 
 
@@ -30,7 +29,7 @@ def delete_fatherless_room(sender, instance, **kwargs):
 def trigger_ai_analysis_on_photo_upload(
     sender, instance, created, **kwargs
 ):  # noqa: ARG001
-    """Run LLM Vision analysis automatically whenever a new photo is saved.
+    """Queue LLM Vision analysis automatically whenever a new photo is saved.
 
     - Prompt is read from settings so it can be overridden via .env.
     """
@@ -41,8 +40,4 @@ def trigger_ai_analysis_on_photo_upload(
     if not prompt:
         return
 
-    try:
-        service = AiAnalysisService()
-        service.analyze_photo(instance, prompt)
-    except AiAnalysisError as exc:
-        print(f"[ai_analysis] Auto-analysis failed for photo {instance.pk}: {exc}")
+    analyze_photo_task.delay(instance.pk, prompt)
