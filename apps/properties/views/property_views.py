@@ -12,7 +12,7 @@ from apps.properties.tasks import search_nearby_places
 from apps.properties.services import NomatimService
 from apps.properties.pagination import HomeMatchPagination
 from apps.properties.repositories import PropertyRepository
-from apps.properties.use_cases import PropertyUseCase, ReviewUseCase
+from apps.properties.use_cases import MatchScoreUseCase, PropertyUseCase, ReviewUseCase
 
 # C -> Create
 # R -> Read
@@ -56,6 +56,25 @@ class CreateListPropertyView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         return PropertyRepository.list_properties_with_order()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        should_match = request.query_params.get("match") == "true"
+        if should_match and request.user.is_authenticated:
+            queryset = MatchScoreUseCase.apply_match_scores(
+                queryset,
+                request.user,
+                query_params=request.query_params,
+            )
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def get_serializer_class(self):
         if self.request.method == "POST":
