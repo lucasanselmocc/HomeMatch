@@ -1,6 +1,6 @@
 # apps/users/serializers.py
 from rest_framework import serializers
-from .models import User, SearchPreference
+from .models import PropertyAlert, User, SearchPreference
 from .services import UserService
 
 class SearchPreferenceSerializer(serializers.ModelSerializer):
@@ -34,3 +34,22 @@ class RegisterSerializer(serializers.ModelSerializer):
         if email is None:
             raise serializers.ValidationError("This email is currently in use.")
         return email
+    
+
+class PropertyAlertSerializer(serializers.ModelSerializer):
+    """
+    Serializer para alertas de imóveis.
+    """
+
+    class Meta:
+        model = PropertyAlert
+        fields = ['id', 'filters', 'is_active', 'created_at', 'last_notified_at']
+        read_only_fields = ['created_at', 'last_notified_at']
+
+    def validate_filters(self, value):
+        """
+        Valida que o campo filters é um dicionário válido.
+        """
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Os filtros devem ser um objeto JSON válido.")
+        return value
