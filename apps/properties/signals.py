@@ -2,11 +2,17 @@ from django.conf import settings
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from apps.ai_analysis.tasks import analyze_photo_task
-from .models import Properties, PropertiesPhotos
+from .models import Properties, PropertiesPhotos, Reviews
 from django.utils import timezone
 from apps.users.models import PropertyAlert
 from apps.users.email_service import PropertyAlertEmailService
 from apps.properties.filters import PropertiesFilters
+
+# Imports para notificações em tempo real
+from apps.notifications.models import Notification
+from apps.notifications.serializers import NotificationSerializer
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 
 # É um decorator que fica "escutando" eventos que acontecem no banco
@@ -91,3 +97,64 @@ def property_matches_alert(property_obj, filters):
     filterset = PropertiesFilters(data=filters, queryset=queryset)
     # Se o queryset filtrado contém o imóvel, então ele casa com os critérios
     return queryset.filter(id__in=filterset.qs.values_list('id', flat=True)).exists()
+
+# =========================================================================
+# Sinais para notificações em tempo real
+#
+# Os sinais abaixo notificam usuários quando um imóvel favoritado muda de preço
+# ou quando uma review é adicionada ao imóvel do proprietário. Eles criam
+# registros de Notification e enviam a mensagem para o WebSocket do usuário.
+
+
+def _send_realtime_notification(user, notification: Notification) -> None:
+    """Helper: envia uma notificação via WebSocket para o usuário fornecido."""
+    channel_layer = get_channel_layer()
+    payload = NotificationSerializer(notification).data
+    async_to_sync(channel_layer.group_send)(
+        f"notifications_{user.id}",
+        {
+            "type": "send.notification",
+            "notification": payload,
+        },
+    )
+
+
+@receiver(post_save, sender=Properties)
+def notify_favorite_price_update(sender, instance, created, **kwargs):  # noqa: ANN001, D401
+    """Se o preço de um imóvel favoritado foi alterado, notifique os usuários."""
+    if created:
+        return
+    # Obter estado anterior para comparar preço
+    try:
+        previous = sender.objects.get(pk=instance.pk)
+    except sender.DoesNotExist:
+        return
+    # Se o preço mudou, criar notificação para todos que favoritaram
+    if previous.price != instance.price:
+        message = (
+            f"O imóvel '{instance.address}' teve seu preço atualizado para R${instance.price}."
+        )
+        for user in instance.favorited_by.all():
+            notification = Notification.objects.create(
+                user=user,
+                type=Notification.NotificationType.PRICE_UPDATE,
+                message=message,
+            )
+            _send_realtime_notification(user, notification)
+
+
+@receiver(post_save, sender=Reviews)
+def notify_new_review(sender, instance, created, **kwargs):  # noqa: ANN001, D401
+    """Quando uma review é criada, notifique o proprietário do imóvel."""
+    if not created:
+        return
+    property_obj = instance.property
+    owner = getattr(property_obj, "owner", None)
+    if owner:
+        message = f"O imóvel '{property_obj.address}' recebeu uma nova avaliação."
+        notification = Notification.objects.create(
+            user=owner,
+            type=Notification.NotificationType.NEW_REVIEW,
+            message=message,
+        )
+        _send_realtime_notification(owner, notification)
