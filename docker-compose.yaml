@@ -51,5 +51,19 @@ services:
       redis:
         condition: service_healthy
 
+  # Serviço adicional para lidar com conexões WebSocket via Django Channels.
+  channels_worker:
+    build: .
+    command: daphne -b 0.0.0.0 -p 8001 config.asgi:application
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   postgres_data:

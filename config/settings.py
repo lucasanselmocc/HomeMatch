@@ -24,6 +24,8 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_filters",
+    # Django Channels para suporte a WebSocket
+    "channels",
 ]
 
 LOCAL_APPS = [
@@ -31,6 +33,8 @@ LOCAL_APPS = [
     "apps.properties",
     "apps.search",
     "apps.ai_analysis",
+    # Novo aplicativo para notificações em tempo real
+    "apps.notifications",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -65,7 +69,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "config.wsgi.application"
+# Utilizar ASGI ao invés de WSGI para suportar WebSockets via Django Channels
+ASGI_APPLICATION = "config.asgi.application"
 
 DATABASES = {
     "default": {
@@ -75,6 +80,11 @@ DATABASES = {
         "PASSWORD": config("DB_PASSWORD"),
         "HOST": config("DB_HOST"),
         "PORT": config("DB_PORT"),
+        # Configuração do banco de dados de testes. Durante a execução dos testes,
+        # o Django criará automaticamente um banco com este nome.
+        "TEST": {
+            "NAME": "test_homematch",
+        },
     }
 }
 
@@ -166,5 +176,20 @@ CELERY_TASK_SERIALIZER = "json"
 # Quando uma tarefa é terminada, o redis vai armazenar seu resultado
 
 GOOGLE_PLACES_API_KEY = config("GOOGLE_PLACES_API_KEY", default="")
+
+# Configuração do canal layer usando Redis. O serviço redis já está configurado no docker-compose
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                (
+                    config("CHANNEL_REDIS_HOST", default="redis"),
+                    int(config("CHANNEL_REDIS_PORT", default=6379)),
+                )
+            ],
+        },
+    },
+}
 
 STATICFILES_DIRS = [BASE_DIR / "frontend"]

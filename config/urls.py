@@ -11,5 +11,6 @@ urlpatterns = [
     path("api/properties/", include("apps.properties.urls")),
     path("api/search/", include("apps.search.urls")),
     path("api/ai-analysis/", include("apps.ai_analysis.urls")),
+    path("api/notifications/", include("apps.notifications.urls")),
     path("", TemplateView.as_view(template_name="index.html")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

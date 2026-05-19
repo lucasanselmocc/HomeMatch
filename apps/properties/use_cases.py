@@ -311,14 +311,20 @@ class PropertyUseCase:
 
     @staticmethod
     def delete_property(instance):
+        property_id = instance.id
         rooms = instance.rooms
         rooms_extras = instance.rooms_extras
+        
         instance.delete()
 
-        if rooms and not rooms.properties.exists():
-            rooms.delete()
-        if rooms_extras and not rooms_extras.properties.exists():
-            rooms_extras.delete()
+        # Proteção contra erros de deleção em cascata/relacionamentos órfãos
+        if rooms and hasattr(rooms, 'id') and rooms.id is not None:
+            if not rooms.properties.exclude(id=property_id).exists():
+                rooms.delete()
+                
+        if rooms_extras and hasattr(rooms_extras, 'id') and rooms_extras.id is not None:
+            if not rooms_extras.properties.exclude(id=property_id).exists():
+                rooms_extras.delete()
 
 
 class PhotoUseCase:

@@ -31,6 +31,12 @@ The project currently includes a working backend API, asynchronous image analysi
 - Static frontend integrated with the API.
 - Frontend prepared for backend-owned natural-language search.
 
+### New in Sprint 4
+
+- **Real‑time notifications** for key events: when a favourited property's price changes, when someone reviews one of your properties, or when the AI finishes analysing your property photos. Notifications are delivered live over WebSockets using Django Channels.
+- **Notification API** to list your notifications (`GET /api/notifications/`) and mark them as read (`PATCH /api/notifications/{id}/`).
+- **Test suite** with pytest and pytest‑django covering authentication, property CRUD, reviews and favourites. Run `pip install -r requirements-dev.txt` and `pytest` to execute all tests with a coverage report.
+
 ---
 
 ## Architecture
@@ -167,6 +173,36 @@ AI_MODEL=gemini-2.5-flash
 ```
 
 The configured model must support `generateContent` and image input.
+
+---
+
+## Real‑Time Notifications
+
+HomeMatch agora suporta notificações em tempo real através de **WebSockets**. Quando um usuário favorita um imóvel, ele será avisado imediatamente caso:
+
+1. O preço do imóvel seja atualizado.
+2. Uma nova review seja feita para esse imóvel.
+3. A análise de IA de uma foto do imóvel seja concluída.
+
+### Como funciona
+
+- O backend utiliza **Django Channels** com Redis como *channel layer* para gerenciar conexões WebSocket.
+- Um serviço adicional `channels_worker` foi adicionado ao `docker-compose.yaml` para processar mensagens WebSocket.
+- A URL do WebSocket é: `ws://<host>:8001/ws/notifications/?token=<access_token>`.
+- O token de acesso JWT deve ser passado como parâmetro de consulta (`token=`) para autenticar a conexão.
+
+### Endpoints REST associados
+
+Além das mensagens em tempo real, as notificações são persistidas no banco de dados e podem ser acessadas via API:
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| `GET` | `/api/notifications/` | Lista todas as notificações do usuário autenticado |
+| `PATCH` | `/api/notifications/{id}/` | Marca uma notificação específica como lida |
+
+As notificações armazenam o tipo de evento, a mensagem e um campo `read` indicando se já foram visualizadas.
+
+---
 
 ---
 
@@ -363,6 +399,40 @@ Change admin password:
 docker compose exec web python manage.py changepassword <admin-email-or-username>
 ```
 
+---
+
+## Running Tests
+
+This project includes an automated test suite using **pytest** and **pytest-django**. The tests cover authentication, property creation and management, reviews, and favorites. To run the tests with a coverage report:
+
+1. Install dependencys:
+
+   ```bash
+   pip install -r requirements-dev.txt
+   ```
+
+2. Run the migrations in a test database (this is done automatically by pytest-django):
+
+   ```bash
+   docker compose exec web python manage.py migrate
+   ```
+
+3. Run the tests:
+   
+   ```bash
+   pytest
+   ```
+
+4. To check code coverage, use:
+
+   ```bash
+   pytest --cov=apps
+   ```
+
+The `pytest.ini` file is already configured to point to the Django settings (`DJANGO_SETTINGS_MODULE=config.settings`) and to use the coverage option automatically when needed.
+
+Reusable fixtures (advertiser user, regular user, tokens, property factory) are defined in `conftest.py`. The test database is isolated and uses the `TEST` configuration in `settings.py` to avoid conflicts with the development database.
+
 Run reports:
 
 ```bash
@@ -375,11 +445,11 @@ pip install -r tools/requirements-dev.txt
 ## Team
 
 | Name | GitHub |
-|---|---|
+| --- | --- |
 | Kauã do Vale Ferreira | [@DevlTz](https://github.com/DevlTz) |
 | Luisa Ferreira de Souza Santos | [@luisaferreirass](https://github.com/luisaferreirass) |
 | Lucas Graziano dos Santos Anselmo | [@lucasanselmocc](https://github.com/lucasanselmocc) |
 
 ---
 
-*Software Engineering course project @UFRN*
+Software Engineering course project @UFRN
