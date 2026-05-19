@@ -64,7 +64,6 @@ def property_factory(db, advertiser_user):
             "has_mobilia": False,
             "status": True,
             "description": "Propriedade de teste",
-            "embedding": "[]",
         }
         defaults.update(kwargs)
         return Properties.objects.create(**defaults)
