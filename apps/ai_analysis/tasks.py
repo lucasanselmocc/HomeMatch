@@ -36,6 +36,33 @@ def analyze_photo_task(self, photo_id, prompt=None):
         photo.property_id,
         len(result),
     )
+    # Notificar o proprietário que a análise foi concluída
+    try:
+        from apps.notifications.models import Notification
+        from apps.notifications.serializers import NotificationSerializer
+        from asgiref.sync import async_to_sync
+        from channels.layers import get_channel_layer
+
+        property_obj = photo.property
+        owner = getattr(property_obj, "owner", None)
+        if owner:
+            message = f"A análise de IA do imóvel '{property_obj.address}' foi concluída."
+            notification = Notification.objects.create(
+                user=owner,
+                type=Notification.NotificationType.AI_ANALYSIS_COMPLETE,
+                message=message,
+            )
+            channel_layer = get_channel_layer()
+            payload = NotificationSerializer(notification).data
+            async_to_sync(channel_layer.group_send)(
+                f"notifications_{owner.id}",
+                {
+                    "type": "send.notification",
+                    "notification": payload,
+                },
+            )
+    except Exception as exc:
+        logger.warning("Falha ao enviar notificação de IA: %s", exc)
     return {
         "photo_id": photo.id,
         "property_id": photo.property_id,
