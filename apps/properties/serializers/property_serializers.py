@@ -56,6 +56,7 @@ class PropertiesReadSerializer(serializers.ModelSerializer):
     images = PropertiesPhotosSerializer(many=True, read_only=True, source="photos")
     nearby_places = NearbyPlacesSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
+    match_score = serializers.SerializerMethodField()
     search_match_score = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source="owner.name", read_only=True)
     subjective_attributes = PropertySubjectiveAttributeSerializer(many=True, read_only=True)
@@ -68,11 +69,15 @@ class PropertiesReadSerializer(serializers.ModelSerializer):
     def get_search_match_score(self, obj):
         return getattr(obj, "search_match_score", None)
 
+    def get_match_score(self, obj):
+        return getattr(obj, "match_score", None)
+
     # se match_score não for calculado, remove ele da resposta
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        if data["match_score"] is None:
-            data.pop("match_score")
+        for score_field in ("match_score", "search_match_score"):
+            if data.get(score_field) is None:
+                data.pop(score_field, None)
         return data
 
     class Meta:

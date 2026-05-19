@@ -66,6 +66,7 @@ class SearchRepository:
             property_embedding = EmbeddingService.deserialize(property_obj.embedding)
             score = EmbeddingService.cosine_similarity(query_embedding, property_embedding)
             property_obj.search_match_score = round(score, 6)
+            property_obj.match_score = SearchRepository._semantic_match_score(score)
             ranked.append(property_obj)
 
         return sorted(
@@ -76,3 +77,8 @@ class SearchRepository:
             ),
             reverse=True,
         )
+
+    @staticmethod
+    def _semantic_match_score(similarity_score):
+        normalized_score = max(0.0, min(float(similarity_score), 1.0))
+        return round(normalized_score * 100)
