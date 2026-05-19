@@ -136,6 +136,7 @@ USE_LOCAL_STORAGE = config("USE_LOCAL_STORAGE", default=False, cast=bool)
 AI_API_BASE_URL = config("AI_API_BASE_URL", default="https://generativelanguage.googleapis.com/v1beta/openai/")
 AI_API_KEY = config("AI_API_KEY", default=None)
 AI_MODEL = config("AI_MODEL", default="gemini-3-flash-preview")
+SEARCH_EMBEDDING_MODEL = config("SEARCH_EMBEDDING_MODEL", default="text-embedding-004")
 # Default analysis prompt
 # Centralised here so it can be overridden per-environment without touching code.
 # Accepts a custom prompt for future use cases.
