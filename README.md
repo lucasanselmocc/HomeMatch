@@ -288,7 +288,7 @@ Supported objective filters for `/api/properties/` and expected for `/api/search
 ### 1. Clone
 
 ```bash
-git clone https://github.com/lucasanselmocc/HomeMatch.git
+git clone https://github.com/DevlTz/HomeMatch.git
 cd HomeMatch
 ```
 
