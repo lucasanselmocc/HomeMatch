@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeMatch | Cadastro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    .field input.is-invalid,
+    .field select.is-invalid {
+      border-color: #dc2626;
+      box-shadow: 0 0 0 4px rgba(220, 38, 38, .12);
+    }
+
+    .field input.is-valid,
+    .field select.is-valid {
+      border-color: #16a34a;
+      box-shadow: 0 0 0 4px rgba(22, 163, 74, .10);
+    }
+
+    .rules-box {
+      margin: 14px 0 18px;
+      border: 1px solid var(--hm-border);
+      border-radius: 18px;
+      padding: 14px 16px;
+      background: #fff;
+    }
+
+    .rules-box.has-error {
+      border-color: rgba(220, 38, 38, .55);
+      background: #fef2f2;
+    }
+
+    .rules-box.is-valid {
+      border-color: rgba(22, 163, 74, .5);
+      background: #f0fdf4;
+    }
+
+    .rules-box__title {
+      font-weight: 900;
+      margin-bottom: 10px;
+      color: var(--hm-text);
+    }
+
+    .rule-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .rule {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+      color: var(--hm-muted);
+      font-size: .9rem;
+      line-height: 1.35;
+    }
+
+    .rule::before {
+      content: "○";
+      font-weight: 900;
+      color: #94a3b8;
+    }
+
+    .rule.is-valid {
+      color: #166534;
+    }
+
+    .rule.is-valid::before {
+      content: "✓";
+      color: #16a34a;
+    }
+
+    .rule.is-invalid {
+      color: #991b1b;
+    }
+
+    .rule.is-invalid::before {
+      content: "×";
+      color: #dc2626;
+    }
+
+    .account-help {
+      color: var(--hm-muted);
+      font-size: .86rem;
+      line-height: 1.45;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a class="brand" href="index.html" aria-label="HomeMatch">
+        <img class="brand-logo" src="assets/homematch-logo.jpeg" alt="HomeMatch">
+      </a>
+      <nav class="navbar__links">
+        <a href="index.html">Início</a>
+        <a href="imoveis.html">Imóveis</a>
+        <a class="btn btn--small" href="login.html">Entrar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container auth-layout">
+    <section>
+      <span class="kicker">Novo por aqui?</span>
+      <h1>Crie sua conta e encontre seu lar.</h1>
+      <p class="lead">
+        Cadastre-se como <strong>buscador</strong> para salvar favoritos e preferências,
+        ou como <strong>anunciante</strong> para publicar seus imóveis.
+      </p>
+    </section>
+
+    <form class="auth-card" id="form-register" novalidate>
+      <h2>Cadastro</h2>
+      <div id="alert-container"></div>
+
+      <div class="field">
+        <label for="name">Nome completo</label>
+        <input id="name" type="text" placeholder="Seu nome" required autocomplete="name">
+      </div>
+
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" placeholder="usuario@email.com" required autocomplete="email">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="senha">Senha</label>
+          <input id="senha" type="password" placeholder="Mín. 8 caracteres" required autocomplete="new-password">
+        </div>
+
+        <div class="field">
+          <label for="senha2">Confirmar senha</label>
+          <input id="senha2" type="password" placeholder="Repita a senha" required autocomplete="new-password">
+        </div>
+      </div>
+
+      <div class="rules-box" id="rules-box" aria-live="polite">
+        <div class="rules-box__title">Requisitos para criar a conta</div>
+        <ul class="rule-list">
+          <li class="rule" id="rule-name">Informe seu nome completo.</li>
+          <li class="rule" id="rule-email">Use um e-mail válido, como usuario@email.com.</li>
+          <li class="rule" id="rule-password-length">A senha deve ter pelo menos 8 caracteres.</li>
+          <li class="rule" id="rule-password-letter">A senha deve ter pelo menos uma letra.</li>
+          <li class="rule" id="rule-password-number">A senha deve ter pelo menos um número.</li>
+          <li class="rule" id="rule-password-match">A confirmação deve ser igual à senha.</li>
+        </ul>
+      </div>
+
+      <div class="field">
+        <label for="user-type">Tipo de conta</label>
+        <select id="user-type">
+          <option value="S">Buscador — quero encontrar imóveis</option>
+          <option value="A">Anunciante — quero publicar imóveis</option>
+        </select>
+        <p class="account-help" id="account-help">
+          Buscadores podem favoritar imóveis e avaliar anúncios. Anunciantes podem publicar imóveis.
+        </p>
+      </div>
+
+      <button type="submit" class="btn btn--block" id="btn-submit">Criar conta</button>
+      <p class="auth-link">Já tem conta? <a href="login.html">Entrar</a></p>
+    </form>
+  </main>
+
+  <script type="module">
+    import { register } from "./assets/api.js";
+
+    const form = document.getElementById("form-register");
+    const btnSub = document.getElementById("btn-submit");
+    const alertEl = document.getElementById("alert-container");
+
+    const fields = {
+      name: document.getElementById("name"),
+      email: document.getElementById("email"),
+      password: document.getElementById("senha"),
+      password2: document.getElementById("senha2"),
+      userType: document.getElementById("user-type"),
+    };
+
+    const rulesBox = document.getElementById("rules-box");
+
+    const rules = {
+      name: document.getElementById("rule-name"),
+      email: document.getElementById("rule-email"),
+      passwordLength: document.getElementById("rule-password-length"),
+      passwordLetter: document.getElementById("rule-password-letter"),
+      passwordNumber: document.getElementById("rule-password-number"),
+      passwordMatch: document.getElementById("rule-password-match"),
+    };
+
+    function showAlert(msg, type = "error") {
+      alertEl.innerHTML = `<div class="alert alert--${type}">${msg}</div>`;
+    }
+
+    function isValidEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function setRule(rule, valid, touched) {
+      rule.classList.toggle("is-valid", valid);
+      rule.classList.toggle("is-invalid", touched && !valid);
+    }
+
+    function setFieldState(field, valid, touched) {
+      field.classList.toggle("is-valid", touched && valid);
+      field.classList.toggle("is-invalid", touched && !valid);
+    }
+
+    function validateForm({ showUntouched = false } = {}) {
+      const name = fields.name.value.trim();
+      const email = fields.email.value.trim();
+      const password = fields.password.value;
+      const password2 = fields.password2.value;
+
+      const touched = {
+        name: showUntouched || name.length > 0,
+        email: showUntouched || email.length > 0,
+        password: showUntouched || password.length > 0,
+        password2: showUntouched || password2.length > 0,
+      };
+
+      const validity = {
+        name: name.split(/\s+/).filter(Boolean).length >= 2,
+        email: isValidEmail(email),
+        passwordLength: password.length >= 8,
+        passwordLetter: /[A-Za-zÀ-ÿ]/.test(password),
+        passwordNumber: /\d/.test(password),
+        passwordMatch: password.length > 0 && password === password2,
+      };
+
+      setRule(rules.name, validity.name, touched.name);
+      setRule(rules.email, validity.email, touched.email);
+      setRule(rules.passwordLength, validity.passwordLength, touched.password);
+      setRule(rules.passwordLetter, validity.passwordLetter, touched.password);
+      setRule(rules.passwordNumber, validity.passwordNumber, touched.password);
+      setRule(rules.passwordMatch, validity.passwordMatch, touched.password2);
+
+      setFieldState(fields.name, validity.name, touched.name);
+      setFieldState(fields.email, validity.email, touched.email);
+
+      const passwordValid = validity.passwordLength && validity.passwordLetter && validity.passwordNumber;
+      setFieldState(fields.password, passwordValid, touched.password);
+      setFieldState(fields.password2, validity.passwordMatch, touched.password2);
+
+      const allValid = Object.values(validity).every(Boolean);
+
+      const hasTouchedError = Object.entries(validity).some(([key, valid]) => {
+        if (key === "name") return touched.name && !valid;
+        if (key === "email") return touched.email && !valid;
+        if (key.startsWith("password") && key !== "passwordMatch") return touched.password && !valid;
+        if (key === "passwordMatch") return touched.password2 && !valid;
+        return false;
+      });
+
+      rulesBox.classList.toggle("has-error", hasTouchedError);
+      rulesBox.classList.toggle("is-valid", allValid);
+
+      btnSub.disabled = !allValid;
+
+      return allValid;
+    }
+
+    function updateAccountHelp() {
+      const help = document.getElementById("account-help");
+
+      if (fields.userType.value === "A") {
+        help.textContent = "Conta anunciante: você poderá publicar imóveis e gerenciar anúncios próprios.";
+      } else {
+        help.textContent = "Conta buscador: você poderá favoritar imóveis, avaliar anúncios e salvar preferências.";
+      }
+    }
+
+    Object.values(fields).forEach(field => {
+      field.addEventListener("input", () => {
+        alertEl.innerHTML = "";
+        validateForm();
+      });
+
+      field.addEventListener("blur", () => validateForm());
+    });
+
+    fields.userType.addEventListener("change", updateAccountHelp);
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      alertEl.innerHTML = "";
+
+      const isValid = validateForm({ showUntouched: true });
+
+      if (!isValid) {
+        showAlert("Corrija os campos destacados antes de criar a conta.");
+        return;
+      }
+
+      const name = fields.name.value.trim();
+      const email = fields.email.value.trim();
+      const senha = fields.password.value;
+      const user_type = fields.userType.value;
+
+      btnSub.disabled = true;
+      btnSub.textContent = "Criando conta…";
+
+      try {
+        await register(name, email, senha, user_type);
+        showAlert("Conta criada! Redirecionando para o login…", "success");
+        setTimeout(() => { window.location.href = "login.html"; }, 1500);
+      } catch (err) {
+        const data = err.data || {};
+        const firstError = data.detail
+          || Object.values(data).flat().find(Boolean)
+          || "Erro ao criar conta.";
+
+        showAlert(firstError);
+        btnSub.textContent = "Criar conta";
+        validateForm();
+      }
+    });
+
+    updateAccountHelp();
+    validateForm();
+  </script>
+</body>
+</html>

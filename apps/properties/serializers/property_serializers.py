@@ -3,6 +3,7 @@ from apps.properties.models import Condo, Properties, Rooms, RoomsExtras, Nearby
 from apps.properties.validators import validate_positive_number, validate_required_field
 from apps.properties.serializers.photo_serializers import PropertiesPhotosSerializer
 from apps.properties.use_cases import PropertyUseCase, ReviewUseCase
+from apps.ai_analysis.models import PropertySubjectiveAttribute
 
 
 class RoomsExtrasSerializer(serializers.ModelSerializer):
@@ -42,6 +43,11 @@ class NearbyPlacesSerializer(serializers.ModelSerializer):
     class Meta:
         model = NearbyPlaces
         fields = ["name", "category", "distance_meters", "rating"]
+    
+class PropertySubjectiveAttributeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PropertySubjectiveAttribute
+        fields = ["attribute_token", "strength_mean"]
 
 class PropertiesReadSerializer(serializers.ModelSerializer):
     rooms = RoomsSerializer()
@@ -52,6 +58,7 @@ class PropertiesReadSerializer(serializers.ModelSerializer):
     average_rating = serializers.SerializerMethodField()
     search_match_score = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source="owner.name", read_only=True)
+    subjective_attributes = PropertySubjectiveAttributeSerializer(many=True, read_only=True)
     
     def get_average_rating(self, obj):
         if hasattr(obj, "average_rating"):
@@ -60,6 +67,13 @@ class PropertiesReadSerializer(serializers.ModelSerializer):
 
     def get_search_match_score(self, obj):
         return getattr(obj, "search_match_score", None)
+
+    # se match_score não for calculado, remove ele da resposta
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if data["match_score"] is None:
+            data.pop("match_score")
+        return data
 
     class Meta:
         model = Properties

@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeMatch | Detalhes do imóvel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    .photo-viewer {
+      background: #fff;
+      border: 1px solid var(--hm-border);
+      border-radius: 28px;
+      padding: 14px;
+      box-shadow: 0 22px 50px rgba(15, 23, 42, .08);
+    }
+
+    .photo-viewer__main {
+      position: relative;
+      height: min(620px, 58vh);
+      min-height: 360px;
+      border-radius: 22px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #fee2e2, #f8fafc);
+      cursor: zoom-in;
+    }
+
+    .photo-viewer__main img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      user-select: none;
+    }
+
+    .photo-viewer__empty {
+      height: 100%;
+      display: grid;
+      place-items: center;
+      color: var(--hm-muted);
+      font-weight: 800;
+    }
+
+    .photo-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 46px;
+      height: 46px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255,255,255,.92);
+      color: var(--hm-text);
+      font-size: 1.4rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 14px 34px rgba(0,0,0,.2);
+      display: grid;
+      place-items: center;
+    }
+
+    .photo-nav:hover {
+      background: #fff;
+    }
+
+    .photo-nav--prev {
+      left: 16px;
+    }
+
+    .photo-nav--next {
+      right: 16px;
+    }
+
+    .photo-counter {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, .78);
+      color: #fff;
+      font-weight: 800;
+      padding: 8px 12px;
+      font-size: .85rem;
+    }
+
+    .photo-thumbs {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .photo-thumb {
+      width: 88px;
+      height: 66px;
+      border: 2px solid transparent;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #f1f5f9;
+      flex: 0 0 auto;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .photo-thumb.is-active {
+      border-color: var(--hm-red);
+    }
+
+    .photo-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-attributes {
+      margin-top: 12px;
+      min-height: 32px;
+    }
+
+    .photo-attributes__title {
+      color: var(--hm-muted);
+      font-size: .78rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: 8px;
+    }
+
+    .photo-attributes .chip {
+      font-size: .78rem;
+      padding: 6px 9px;
+    }
+
+    .photo-attributes small {
+      font-size: .72rem;
+      opacity: .8;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(2, 6, 23, .88);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 26px;
+    }
+
+    .lightbox.is-open {
+      display: flex;
+    }
+
+    .lightbox__image {
+      max-width: min(1180px, 94vw);
+      max-height: 86vh;
+      border-radius: 20px;
+      object-fit: contain;
+      box-shadow: 0 30px 90px rgba(0,0,0,.5);
+      background: #0f172a;
+    }
+
+    .lightbox__close,
+    .lightbox__nav {
+      position: fixed;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+
+    .lightbox__close {
+      top: 22px;
+      right: 22px;
+      width: 48px;
+      height: 48px;
+      font-size: 1.6rem;
+    }
+
+    .lightbox__nav {
+      top: 50%;
+      transform: translateY(-50%);
+      width: 56px;
+      height: 56px;
+      font-size: 2rem;
+    }
+
+    .lightbox__nav--prev {
+      left: 24px;
+    }
+
+    .lightbox__nav--next {
+      right: 24px;
+    }
+
+    .lightbox__caption {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      color: #fff;
+      background: rgba(15, 23, 42, .74);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-weight: 800;
+      font-size: .9rem;
+    }
+
+    @media (max-width: 760px) {
+      .photo-viewer__main {
+        min-height: 260px;
+        height: 42vh;
+      }
+
+      .photo-nav {
+        width: 40px;
+        height: 40px;
+      }
+
+      .lightbox__nav {
+        width: 46px;
+        height: 46px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a class="brand" href="index.html" aria-label="HomeMatch">
+        <img class="brand-logo" src="assets/homematch-logo.jpeg" alt="HomeMatch">
+      </a>
+      <nav class="navbar__links">
+        <a href="index.html">Início</a>
+        <a href="imoveis.html">Imóveis</a>
+        <a class="btn btn--small" href="login.html" id="nav-auth-btn">Entrar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" id="main-content">
+    <div class="loading-state"><div class="spinner"></div><br>Carregando imóvel…</div>
+  </main>
+
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lightbox__close" id="lightbox-close" type="button" aria-label="Fechar">×</button>
+    <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" type="button" aria-label="Foto anterior">‹</button>
+    <img class="lightbox__image" id="lightbox-image" alt="Foto ampliada do imóvel">
+    <button class="lightbox__nav lightbox__nav--next" id="lightbox-next" type="button" aria-label="Próxima foto">›</button>
+    <div class="lightbox__caption" id="lightbox-caption"></div>
+  </div>
+
+  <footer class="footer">HomeMatch</footer>
+
+  <script type="module">
+    import {
+      getProperty, getReviews, createReview,
+      addFavorite, removeFavorite, getFavorites,
+      Auth, fmtPrice, TYPE_LABEL, PURPOSE_LABEL, BASE_URL
+    } from "./assets/api.js";
+
+    if (Auth.isLoggedIn()) {
+      const btn = document.getElementById("nav-auth-btn");
+      btn.textContent = "Minha Conta";
+      btn.href = "perfil.html";
+    }
+
+    const main = document.getElementById("main-content");
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    const urlMatchScore = params.get("match_score");
+
+    let currentPhotoIndex = 0;
+    let currentPhotos = [];
+    let currentProperty = null;
+
+    if (!id) {
+      main.innerHTML = `
+        <div class="alert alert--error">
+          Nenhum imóvel selecionado. <a href="imoveis.html">Ver lista de imóveis →</a>
+        </div>`;
+      throw new Error("No id");
+    }
+
+    function getBrowserLang() {
+      return (navigator.language || "pt").slice(0, 2).toLowerCase();
+    }
+
+    const AI_ATTRIBUTE_LABELS = {
+      pt: {
+        "aesthetics.architecture.contemporary": "Arquitetura contemporânea",
+        "aesthetics.architecture.minimalist": "Arquitetura minimalista",
+        "aesthetics.architecture.postmodern": "Arquitetura pós-moderna",
+        "aesthetics.color.brightness": "Luminosidade",
+        "aesthetics.color.saturation": "Saturação das cores",
+        "aesthetics.color.visual_warmth": "Calor visual",
+        "current_state.cleanliness": "Limpeza",
+        "current_state.leisure": "Área de lazer",
+        "current_state.structural_integrity": "Integridade estrutural",
+        "current_state.ventilation": "Ventilação",
+        "livability.coziness": "Aconchego",
+        "livability.humidity": "Umidade aparente",
+        "livability.spaciousness": "Amplitude",
+        "livability.verdancy": "Presença de verde"
+      },
+      en: {
+        "aesthetics.architecture.contemporary": "Contemporary architecture",
+        "aesthetics.architecture.minimalist": "Minimalist architecture",
+        "aesthetics.architecture.postmodern": "Postmodern architecture",
+        "aesthetics.color.brightness": "Brightness",
+        "aesthetics.color.saturation": "Color saturation",
+        "aesthetics.color.visual_warmth": "Visual warmth",
+        "current_state.cleanliness": "Cleanliness",
+        "current_state.leisure": "Leisure area",
+        "current_state.structural_integrity": "Structural integrity",
+        "current_state.ventilation": "Ventilation",
+        "livability.coziness": "Coziness",
+        "livability.humidity": "Apparent humidity",
+        "livability.spaciousness": "Spaciousness",
+        "livability.verdancy": "Greenery"
+      }
+    };
+
+    function fallbackAttributeLabel(token) {
+      const label = String(token ?? "")
+        .split(".")
+        .slice(-1)[0]
+        .replace(/_/g, " ");
+
+      return label.charAt(0).toUpperCase() + label.slice(1);
+    }
+
+    function formatAttributeLabel(token) {
+      const lang = getBrowserLang();
+      const labels = AI_ATTRIBUTE_LABELS[lang] || AI_ATTRIBUTE_LABELS.en;
+      return labels[token] || fallbackAttributeLabel(token);
+    }
+
+    function formatStrength(value) {
+      return `${Math.round(Number(value || 0) * 100)}%`;
+    }
+
+    function hasMatchScore(value) {
+      return value !== undefined && value !== null && value !== "";
+    }
+
+    function getEffectiveMatchScore(prop) {
+      if (hasMatchScore(prop.match_score)) return prop.match_score;
+      if (hasMatchScore(urlMatchScore)) return urlMatchScore;
+      return null;
+    }
+
+    function formatMatchScore(value) {
+      const numeric = Number(value);
+      if (Number.isNaN(numeric)) return null;
+      const percentage = numeric <= 1 ? numeric * 100 : numeric;
+      return `${Math.round(percentage)}%`;
+    }
+
+    function matchScoreHtml(prop) {
+      const value = getEffectiveMatchScore(prop);
+      if (!hasMatchScore(value)) return "";
+
+      const formatted = formatMatchScore(value);
+      if (!formatted) return "";
+
+      return `
+        <div class="chips" style="margin:8px 0">
+          <span class="chip chip--red" title="Compatibilidade calculada pela busca">
+            Match ${formatted}
+          </span>
+        </div>`;
+    }
+
+    function resolveImageUrl(url) {
+      if (!url) return "";
+      if (url.startsWith("http://") || url.startsWith("https://")) return url;
+      return `${BASE_URL}${url}`;
+    }
+
+    function stars(rating) {
+      const r = Math.round(rating || 0);
+      return "★".repeat(r) + "☆".repeat(5 - r);
+    }
+
+    function photoAttributes(photo, prop) {
+      if (photo?.subjective_attributes?.length) {
+        return photo.subjective_attributes.map(a => ({
+          token: a.attribute_token,
+          value: a.strength
+        }));
+      }
+
+      // Fallback for older backend responses that do not expose per-photo attributes.
+      return (prop?.subjective_attributes ?? []).map(a => ({
+        token: a.attribute_token,
+        value: a.strength_mean
+      }));
+    }
+
+    function attributesHtml(attrs, { emptyMessage = "Atributos visuais ainda não disponíveis.", limit = 6 } = {}) {
+      if (!attrs?.length) {
+        return `<p class="muted" style="font-size:.82rem">${emptyMessage}</p>`;
+      }
+
+      const chips = attrs
+        .filter(a => Number(a.value) > 0)
+        .sort((a, b) => Number(b.value) - Number(a.value))
+        .slice(0, limit)
+        .map(a => `
+          <span class="chip chip--red" title="${a.token}">
+            ${formatAttributeLabel(a.token)}
+            <small>${formatStrength(a.value)}</small>
+          </span>
+        `)
+        .join("");
+
+      return chips
+        ? `<div class="chips">${chips}</div>`
+        : `<p class="muted" style="font-size:.82rem">${emptyMessage}</p>`;
+    }
+
+    function aiAttributesHtml(attrs) {
+      return attributesHtml(
+        (attrs ?? []).map(a => ({ token: a.attribute_token, value: a.strength_mean })),
+        { emptyMessage: "Análise visual ainda não realizada para este imóvel.", limit: 8 }
+      );
+    }
+
+    function normalizePhotos(prop) {
+      return (prop.images ?? []).map((photo, index) => ({
+        ...photo,
+        index,
+        resolvedUrl: resolveImageUrl(photo.url)
+      }));
+    }
+
+    function photoViewerHtml(prop) {
+      currentPhotos = normalizePhotos(prop);
+      currentPhotoIndex = 0;
+
+      if (!currentPhotos.length) {
+        return `
+          <div class="photo-viewer">
+            <div class="photo-viewer__main">
+              <div class="photo-viewer__empty">Sem fotos disponíveis</div>
+            </div>
+          </div>`;
+      }
+
+      const thumbs = currentPhotos.map((photo, index) => `
+        <button class="photo-thumb ${index === 0 ? "is-active" : ""}" type="button" data-photo-index="${index}" aria-label="Ver foto ${index + 1}">
+          <img src="${photo.resolvedUrl}" alt="Miniatura ${index + 1}">
+        </button>
+      `).join("");
+
+      return `
+        <div class="photo-viewer" id="photo-viewer">
+          <div class="photo-viewer__main" id="photo-main" role="button" tabindex="0" aria-label="Abrir foto em tela cheia">
+            <img id="main-photo-img" src="${currentPhotos[0].resolvedUrl}" alt="Foto principal do imóvel">
+            ${currentPhotos.length > 1 ? `
+              <button class="photo-nav photo-nav--prev" id="photo-prev" type="button" aria-label="Foto anterior">‹</button>
+              <button class="photo-nav photo-nav--next" id="photo-next" type="button" aria-label="Próxima foto">›</button>
+            ` : ""}
+            <span class="photo-counter" id="photo-counter">1 / ${currentPhotos.length}</span>
+          </div>
+
+          <div class="photo-attributes" id="photo-attributes">
+            <div class="photo-attributes__title">Atributos da foto</div>
+            ${attributesHtml(photoAttributes(currentPhotos[0], prop), { limit: 5 })}
+          </div>
+
+          ${currentPhotos.length > 1 ? `<div class="photo-thumbs" id="photo-thumbs">${thumbs}</div>` : ""}
+        </div>`;
+    }
+
+    function updatePhotoView(index) {
+      if (!currentPhotos.length) return;
+
+      currentPhotoIndex = (index + currentPhotos.length) % currentPhotos.length;
+
+      const photo = currentPhotos[currentPhotoIndex];
+      const img = document.getElementById("main-photo-img");
+      const counter = document.getElementById("photo-counter");
+      const attrs = document.getElementById("photo-attributes");
+
+      if (img) img.src = photo.resolvedUrl;
+      if (counter) counter.textContent = `${currentPhotoIndex + 1} / ${currentPhotos.length}`;
+
+      if (attrs) {
+        attrs.innerHTML = `
+          <div class="photo-attributes__title">Atributos da foto</div>
+          ${attributesHtml(photoAttributes(photo, currentProperty), { limit: 5 })}
+        `;
+      }
+
+      document.querySelectorAll(".photo-thumb").forEach(btn => {
+        btn.classList.toggle("is-active", Number(btn.dataset.photoIndex) === currentPhotoIndex);
+      });
+
+      updateLightbox();
+    }
+
+    function openLightbox() {
+      if (!currentPhotos.length) return;
+
+      const lightbox = document.getElementById("lightbox");
+      lightbox.classList.add("is-open");
+      lightbox.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      updateLightbox();
+    }
+
+    function closeLightbox() {
+      const lightbox = document.getElementById("lightbox");
+      lightbox.classList.remove("is-open");
+      lightbox.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+
+    function updateLightbox() {
+      const photo = currentPhotos[currentPhotoIndex];
+      if (!photo) return;
+
+      const img = document.getElementById("lightbox-image");
+      const caption = document.getElementById("lightbox-caption");
+
+      img.src = photo.resolvedUrl;
+      caption.textContent = `Foto ${currentPhotoIndex + 1} de ${currentPhotos.length}`;
+    }
+
+    function renderReviews(reviews) {
+      if (!reviews.length) {
+        return `<p class="muted">Seja o primeiro a avaliar este imóvel.</p>`;
+      }
+
+      return reviews.map(r => `
+        <div class="review-item">
+          <div class="review-item__header">
+            <span class="review-item__author">${r.user_name ?? "Usuário"}</span>
+            <span class="stars">${stars(r.rating)}</span>
+          </div>
+          ${r.comment ? `<p class="review-item__comment">${r.comment}</p>` : ""}
+          <p class="review-item__date">${new Date(r.created_at).toLocaleDateString("pt-BR")}</p>
+        </div>`
+      ).join("");
+    }
+
+    async function render() {
+      let prop, reviews, isFav = false;
+
+      try {
+        [prop, reviews] = await Promise.all([getProperty(id), getReviews(id)]);
+      } catch {
+        main.innerHTML = `<div class="alert alert--error">
+          Imóvel não encontrado. <a href="imoveis.html">Voltar →</a></div>`;
+        return;
+      }
+
+      currentProperty = prop;
+
+      if (Auth.isLoggedIn()) {
+        try {
+          const favsRaw = await getFavorites();
+          const favs = Array.isArray(favsRaw) ? favsRaw : (favsRaw.results ?? []);
+          isFav = favs.some(f => Number(f.id) === Number(prop.id));
+        } catch {
+          // ignore favorite loading error
+        }
+      }
+
+      const typeLabel = TYPE_LABEL[prop.type] ?? prop.type;
+      const purposeLabel = PURPOSE_LABEL[prop.property_purpose] ?? prop.property_purpose;
+      const rating = prop.average_rating;
+      const matchHtml = matchScoreHtml(prop);
+
+      main.innerHTML = `
+        <section class="page-title">
+          <span class="kicker">${typeLabel} · ${purposeLabel}</span>
+          <h1>${prop.description?.split(".")[0] || `${typeLabel} em ${prop.neighborhood}`}</h1>
+          <p class="lead">
+            ${fmtPrice(prop.price)}${prop.property_purpose === "R" ? "/mês" : ""} · ${prop.neighborhood}, ${prop.city}
+          </p>
+        </section>
+
+        <section class="details-hero">
+          ${photoViewerHtml(prop)}
+
+          <aside class="details-panel">
+            <strong class="price">
+              ${fmtPrice(prop.price)}
+              ${prop.property_purpose === "R" ? "<span style='font-size:.7em;font-weight:600;color:var(--hm-muted)'>/mês</span>" : ""}
+            </strong>
+
+            ${rating ? `
+              <div class="chips" style="margin:8px 0">
+                <span class="chip chip--red">
+                  ★ ${Number(rating).toFixed(1)} (${reviews.length} avaliação${reviews.length !== 1 ? "ões" : ""})
+                </span>
+              </div>` : ""}
+
+            ${matchHtml}
+
+            <p class="muted">${prop.description ?? ""}</p>
+
+            <div class="stat-grid">
+              <div class="stat">
+                <strong>${prop.rooms?.bedrooms ?? "—"}</strong>
+                <span>quarto${prop.rooms?.bedrooms !== 1 ? "s" : ""}</span>
+              </div>
+              <div class="stat">
+                <strong>${prop.rooms?.bathrooms ?? "—"}</strong>
+                <span>banheiro${prop.rooms?.bathrooms !== 1 ? "s" : ""}</span>
+              </div>
+              <div class="stat">
+                <strong>${prop.area}</strong>
+                <span>m²</span>
+              </div>
+            </div>
+
+            <div class="chips">
+              ${prop.rooms?.parking_spots ? `<span class="chip">${prop.rooms.parking_spots} vaga${prop.rooms.parking_spots !== 1 ? "s" : ""}</span>` : ""}
+              ${prop.has_mobilia ? `<span class="chip">Mobiliado</span>` : ""}
+              ${prop.condo?.name ? `<span class="chip">Cond. ${prop.condo.name}</span>` : ""}
+              ${prop.floor_number ? `<span class="chip">${prop.floor_number}º andar</span>` : ""}
+            </div>
+
+            <div class="ai-box">
+              <h3>Análise visual por IA</h3>
+              ${aiAttributesHtml(prop.subjective_attributes)}
+            </div>
+
+            <div class="details-actions">
+              ${Auth.isLoggedIn()
+                ? `<button class="btn" id="btn-fav">${isFav ? "♥ Favoritado" : "♡ Favoritar"}</button>`
+                : `<a class="btn" href="login.html?next=detalhes.html?id=${id}">Favoritar</a>`}
+              <a class="btn btn--ghost" href="imoveis.html">← Ver outros</a>
+            </div>
+          </aside>
+        </section>
+
+        <section class="description-section">
+          <h2>Descrição</h2>
+          <p class="lead">${prop.description ?? "Sem descrição."}</p>
+          ${prop.address ? `<p class="muted">📍 ${prop.address}, ${prop.neighborhood}, ${prop.city}</p>` : ""}
+          ${prop.owner_name ? `<p class="muted">Anunciante: <strong>${prop.owner_name}</strong></p>` : ""}
+        </section>
+
+        <section class="reviews-section">
+          <h2>Avaliações</h2>
+          <div class="review-list" id="review-list">
+            ${renderReviews(reviews)}
+          </div>
+
+          ${Auth.isLoggedIn() ? `
+          <div class="review-form">
+            <h3>Deixe sua avaliação</h3>
+            <div id="review-alert"></div>
+
+            <div class="field">
+              <label for="r-rating">Nota (1–5)</label>
+              <select id="r-rating">
+                <option value="5">★★★★★ Excelente</option>
+                <option value="4">★★★★☆ Muito bom</option>
+                <option value="3">★★★☆☆ Bom</option>
+                <option value="2">★★☆☆☆ Regular</option>
+                <option value="1">★☆☆☆☆ Ruim</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="r-comment">Comentário (opcional)</label>
+              <textarea
+                id="r-comment"
+                rows="3"
+                style="width:100%;border:1px solid var(--hm-border);border-radius:14px;padding:10px 12px;font:inherit;resize:vertical;"
+                placeholder="Compartilhe sua experiência…"></textarea>
+            </div>
+
+            <button class="btn" id="btn-review">Enviar avaliação</button>
+          </div>` : `<p class="muted"><a href="login.html">Entre</a> para deixar uma avaliação.</p>`}
+        </section>`;
+
+      bindPhotoViewerEvents();
+
+      const favBtn = document.getElementById("btn-fav");
+
+      if (favBtn) {
+        favBtn.addEventListener("click", async () => {
+          try {
+            if (isFav) {
+              await removeFavorite(prop.id);
+              isFav = false;
+              favBtn.textContent = "♡ Favoritar";
+            } else {
+              await addFavorite(prop.id);
+              isFav = true;
+              favBtn.textContent = "♥ Favoritado";
+            }
+          } catch (err) {
+            alert(err.message);
+          }
+        });
+      }
+
+      const revBtn = document.getElementById("btn-review");
+
+      if (revBtn) {
+        revBtn.addEventListener("click", async () => {
+          const alertEl = document.getElementById("review-alert");
+          alertEl.innerHTML = "";
+
+          const rating = +document.getElementById("r-rating").value;
+          const comment = document.getElementById("r-comment").value.trim();
+
+          revBtn.disabled = true;
+
+          try {
+            await createReview(id, rating, comment);
+
+            const newReviews = await getReviews(id);
+            document.getElementById("review-list").innerHTML = renderReviews(newReviews);
+
+            alertEl.innerHTML = `<div class="alert alert--success">Avaliação enviada!</div>`;
+          } catch (err) {
+            const data = err.data || {};
+            const msg = data.detail
+              || Object.values(data).flat().find(Boolean)
+              || "Erro ao enviar avaliação.";
+
+            alertEl.innerHTML = `<div class="alert alert--error">${msg}</div>`;
+          }
+
+          revBtn.disabled = false;
+        });
+      }
+    }
+
+    function bindPhotoViewerEvents() {
+      const mainPhoto = document.getElementById("photo-main");
+      const prev = document.getElementById("photo-prev");
+      const next = document.getElementById("photo-next");
+      const thumbs = document.getElementById("photo-thumbs");
+
+      if (prev) {
+        prev.addEventListener("click", (e) => {
+          e.stopPropagation();
+          updatePhotoView(currentPhotoIndex - 1);
+        });
+      }
+
+      if (next) {
+        next.addEventListener("click", (e) => {
+          e.stopPropagation();
+          updatePhotoView(currentPhotoIndex + 1);
+        });
+      }
+
+      if (mainPhoto) {
+        mainPhoto.addEventListener("click", openLightbox);
+        mainPhoto.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openLightbox();
+          }
+        });
+      }
+
+      if (thumbs) {
+        thumbs.addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-photo-index]");
+          if (!btn) return;
+          updatePhotoView(Number(btn.dataset.photoIndex));
+        });
+      }
+    }
+
+    document.getElementById("lightbox-close").addEventListener("click", closeLightbox);
+    document.getElementById("lightbox-prev").addEventListener("click", () => updatePhotoView(currentPhotoIndex - 1));
+    document.getElementById("lightbox-next").addEventListener("click", () => updatePhotoView(currentPhotoIndex + 1));
+
+    document.getElementById("lightbox").addEventListener("click", (e) => {
+      if (e.target.id === "lightbox") closeLightbox();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      const isOpen = document.getElementById("lightbox").classList.contains("is-open");
+      if (!isOpen) return;
+
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowLeft") updatePhotoView(currentPhotoIndex - 1);
+      if (e.key === "ArrowRight") updatePhotoView(currentPhotoIndex + 1);
+    });
+
+    render();
+  </script>
+</body>
+</html>
