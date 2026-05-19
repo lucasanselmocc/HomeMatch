@@ -39,6 +39,47 @@
       color: #fff;
     }
 
+    .filter-section-title {
+      grid-column: 1 / -1;
+      font-weight: 900;
+      color: var(--hm-text);
+      margin-top: 4px;
+    }
+
+    .filter-checks {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .filter-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--hm-border);
+      background: #fff;
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-size: .88rem;
+      font-weight: 800;
+      color: var(--hm-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .filter-check input {
+      width: auto;
+    }
+
+    .filter-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
     .favorite-card-btn {
       position: absolute;
       top: 14px;
@@ -74,6 +115,20 @@
       cursor: wait;
     }
 
+    .owner-card-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 3;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, .94);
+      color: #fff;
+      font-size: .78rem;
+      font-weight: 900;
+      padding: 9px 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    }
+
     .property-card__badge--left {
       left: 14px;
       right: auto;
@@ -82,6 +137,11 @@
     .property-card__badge--right-under-fav {
       left: auto;
       right: 64px;
+    }
+
+    .property-card__badge--right-under-owner {
+      left: auto;
+      right: 112px;
     }
 
     .hover-preview {
@@ -188,19 +248,22 @@
     <div id="search-notice" style="display:none; margin-bottom:18px;">
       <div class="ai-box" style="margin:0">
         <strong>Busca por linguagem natural:</strong> <span id="query-text"></span>
-        <p class="muted" style="margin:6px 0 0; font-size:.9rem;">
-          A consulta será enviada ao módulo de busca do backend.
+        <p class="muted" style="margin:6px 0 0; font-size:.9rem;" id="query-help">
+          Buscando com base em:
         </p>
+        <div id="interpreted-filters" class="chips" style="margin-top:10px;"></div>
       </div>
     </div>
 
     <div class="filter-bar" id="filter-bar">
       <div class="filter-group filter-group--wide">
-        <label for="f-search">Busca</label>
-        <input id="f-search" type="text" placeholder="Ex: casa clara, arejada e aconchegante">
+        <label for="f-search">Busca por linguagem natural</label>
+        <input id="f-search" type="text" placeholder="Ex: apartamento claro em Natal com 2 quartos perto de mercado">
       </div>
 
-      <div class="filter-group filter-group--wide">
+      <div class="filter-section-title">Filtros objetivos</div>
+
+      <div class="filter-group">
         <label for="f-city">Cidade</label>
         <input id="f-city" type="text" placeholder="Ex: Natal">
       </div>
@@ -225,17 +288,7 @@
           <option value="">Todas</option>
           <option value="S">Venda</option>
           <option value="R">Aluguel</option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label for="f-bedrooms">Quartos</label>
-        <select id="f-bedrooms">
-          <option value="">Qualquer</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
+          <option value="B">Venda/Aluguel</option>
         </select>
       </div>
 
@@ -250,8 +303,91 @@
       </div>
 
       <div class="filter-group">
-        <label>&nbsp;</label>
-        <button class="btn" id="btn-filter">Buscar</button>
+        <label for="f-min-area">Área mín.</label>
+        <input id="f-min-area" type="number" placeholder="0 m²" min="0">
+      </div>
+
+      <div class="filter-group">
+        <label for="f-max-area">Área máx.</label>
+        <input id="f-max-area" type="number" placeholder="Sem limite" min="0">
+      </div>
+
+      <div class="filter-group">
+        <label for="f-bedrooms">Quartos</label>
+        <select id="f-bedrooms">
+          <option value="">Qualquer</option>
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5+</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="f-bathrooms">Banheiros</label>
+        <select id="f-bathrooms">
+          <option value="">Qualquer</option>
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4+</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="f-parking">Vagas</label>
+        <select id="f-parking">
+          <option value="">Qualquer</option>
+          <option value="0">0</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3+</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="f-floors">Andares</label>
+        <input id="f-floors" type="number" min="1" placeholder="Ex: 2">
+      </div>
+
+      <div class="filter-group">
+        <label for="f-floor-number">Andar</label>
+        <input id="f-floor-number" type="number" min="1" placeholder="Ex: 7">
+      </div>
+
+      <div class="filter-group filter-group--wide">
+        <label for="f-condo-name">Nome do condomínio</label>
+        <input id="f-condo-name" type="text" placeholder="Ex: Residencial Mar Azul">
+      </div>
+
+      <div class="filter-section-title">Extras do imóvel</div>
+
+      <div class="filter-checks">
+        <label class="filter-check"><input type="checkbox" id="f-living-room"> Sala</label>
+        <label class="filter-check"><input type="checkbox" id="f-garden"> Jardim</label>
+        <label class="filter-check"><input type="checkbox" id="f-kitchen"> Cozinha</label>
+        <label class="filter-check"><input type="checkbox" id="f-laundry-room"> Lavanderia</label>
+        <label class="filter-check"><input type="checkbox" id="f-pool"> Piscina</label>
+        <label class="filter-check"><input type="checkbox" id="f-office"> Escritório</label>
+      </div>
+
+      <div class="filter-section-title">Condomínio</div>
+
+      <div class="filter-checks">
+        <label class="filter-check"><input type="checkbox" id="f-condo-gym"> Academia</label>
+        <label class="filter-check"><input type="checkbox" id="f-condo-pool"> Piscina</label>
+        <label class="filter-check"><input type="checkbox" id="f-condo-court"> Quadra</label>
+        <label class="filter-check"><input type="checkbox" id="f-condo-parks"> Parques</label>
+        <label class="filter-check"><input type="checkbox" id="f-condo-party"> Salão de festas</label>
+        <label class="filter-check"><input type="checkbox" id="f-condo-concierge"> Portaria</label>
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn" id="btn-filter" type="button">Buscar</button>
+        <button class="btn btn--ghost" id="btn-clear" type="button">Limpar filtros</button>
       </div>
     </div>
 
@@ -269,10 +405,11 @@
   <script type="module">
     import {
       getProperties,
-      searchProperties,
+      naturalSearch,
       getFavorites,
       addFavorite,
       removeFavorite,
+      getMe,
       Auth,
       fmtPrice,
       TYPE_LABEL,
@@ -295,23 +432,67 @@
 
     let currentTab = "all";
     let favoriteIds = new Set();
+    let currentUser = null;
     let lastItems = [];
     let previewTimer = null;
     let previewIndex = 0;
     let previewImages = [];
     let previewProperty = null;
 
-    document.getElementById("f-search").value = urlParams.get("q") || "";
-    document.getElementById("f-city").value = urlParams.get("city") || "";
+    const fields = {
+      q: document.getElementById("f-search"),
+      city: document.getElementById("f-city"),
+      neighborhood: document.getElementById("f-neighborhood"),
+      type: document.getElementById("f-type"),
+      property_purpose: document.getElementById("f-purpose"),
+      min_price: document.getElementById("f-min-price"),
+      max_price: document.getElementById("f-max-price"),
+      min_area: document.getElementById("f-min-area"),
+      max_area: document.getElementById("f-max-area"),
+      bedrooms: document.getElementById("f-bedrooms"),
+      bathrooms: document.getElementById("f-bathrooms"),
+      parking_spots: document.getElementById("f-parking"),
+      floors: document.getElementById("f-floors"),
+      floor_number: document.getElementById("f-floor-number"),
+      condo_name: document.getElementById("f-condo-name"),
+      living_room: document.getElementById("f-living-room"),
+      garden: document.getElementById("f-garden"),
+      kitchen: document.getElementById("f-kitchen"),
+      laundry_room: document.getElementById("f-laundry-room"),
+      pool: document.getElementById("f-pool"),
+      office: document.getElementById("f-office"),
+      condo_gym: document.getElementById("f-condo-gym"),
+      condo_pool: document.getElementById("f-condo-pool"),
+      condo_court: document.getElementById("f-condo-court"),
+      condo_parks: document.getElementById("f-condo-parks"),
+      condo_party_spaces: document.getElementById("f-condo-party"),
+      condo_concierge: document.getElementById("f-condo-concierge"),
+    };
+
+    fields.q.value = urlParams.get("q") || "";
+    fields.city.value = urlParams.get("city") || "";
 
     function resolveImageUrl(url) {
       if (!url) return "";
       if (url.startsWith("http://") || url.startsWith("https://")) return url;
-      return `${BASE_URL}${url}`;
+      if (url.startsWith("/")) return `${BASE_URL}${url}`;
+      return `${BASE_URL}/${url}`;
     }
 
     function normalizeListResponse(data) {
-      return Array.isArray(data) ? data : (data.results ?? []);
+      return Array.isArray(data) ? data : (data?.results ?? []);
+    }
+
+    function isOwner(p) {
+      if (!p || !currentUser) return false;
+
+      const owner = p.owner ?? p.owner_id ?? p.ownerId;
+
+      if (owner !== undefined && owner !== null) {
+        return Number(owner) === Number(currentUser.id);
+      }
+
+      return p.owner_name && p.owner_name === currentUser.name;
     }
 
     function hasMatchScore(p) {
@@ -321,18 +502,22 @@
     function formatMatchScore(value) {
       const numeric = Number(value);
       if (Number.isNaN(numeric)) return null;
+
+      // Backend natural search currently returns 0..100.
+      // Older match implementations sometimes returned 0..1.
       const percentage = numeric <= 1 ? numeric * 100 : numeric;
       return `${Math.round(percentage)}%`;
     }
 
     function matchScoreHtml(p) {
-      if (!hasMatchScore(p)) return "";
+      if (!hasMatchScore(p) || isOwner(p)) return "";
+
       const formatted = formatMatchScore(p.match_score);
       if (!formatted) return "";
 
       return `
         <div class="chips" style="margin-top:10px;">
-          <span class="chip chip--red" title="Compatibilidade calculada pela busca">
+          <span class="chip chip--red" title="Compatibilidade calculada pela busca natural">
             Match ${formatted}
           </span>
         </div>`;
@@ -342,31 +527,67 @@
       const params = new URLSearchParams();
       params.set("id", p.id);
 
-      if (hasMatchScore(p)) {
+      if (hasMatchScore(p) && !isOwner(p)) {
         params.set("match_score", p.match_score);
       }
 
       return `detalhes.html?${params.toString()}`;
     }
 
-    function buildParams() {
-      return {
-        q: document.getElementById("f-search").value.trim(),
-        city: document.getElementById("f-city").value.trim(),
-        neighborhood: document.getElementById("f-neighborhood").value.trim(),
-        type: document.getElementById("f-type").value,
-        property_purpose: document.getElementById("f-purpose").value,
-        bedrooms: document.getElementById("f-bedrooms").value,
-        min_price: document.getElementById("f-min-price").value,
-        max_price: document.getElementById("f-max-price").value,
-      };
+    function fieldValue(key) {
+      const field = fields[key];
+      if (!field) return "";
+      return field.type === "checkbox" ? field.checked : field.value.trim();
     }
 
-    function buildPublicUrl(params) {
-      const qs = new URLSearchParams();
+    function setBoolFilter(params, key) {
+      if (fieldValue(key)) params[key] = "true";
+    }
 
-      if (params.q) qs.set("q", params.q);
-      if (params.city) qs.set("city", params.city);
+    function buildObjectiveParams() {
+      const params = {
+        city: fieldValue("city"),
+        neighborhood: fieldValue("neighborhood"),
+        type: fieldValue("type"),
+        property_purpose: fieldValue("property_purpose"),
+        min_price: fieldValue("min_price"),
+        max_price: fieldValue("max_price"),
+        min_area: fieldValue("min_area"),
+        max_area: fieldValue("max_area"),
+        bedrooms: fieldValue("bedrooms"),
+        bathrooms: fieldValue("bathrooms"),
+        parking_spots: fieldValue("parking_spots"),
+        floors: fieldValue("floors"),
+        floor_number: fieldValue("floor_number"),
+        condo_name: fieldValue("condo_name"),
+      };
+
+      [
+        "living_room",
+        "garden",
+        "kitchen",
+        "laundry_room",
+        "pool",
+        "office",
+        "condo_gym",
+        "condo_pool",
+        "condo_court",
+        "condo_parks",
+        "condo_party_spaces",
+        "condo_concierge",
+      ].forEach((key) => setBoolFilter(params, key));
+
+      return Object.fromEntries(
+        Object.entries(params).filter(([, value]) => value !== "" && value !== null && value !== undefined)
+      );
+    }
+
+    function buildPublicUrl() {
+      const qs = new URLSearchParams();
+      const query = fieldValue("q");
+
+      if (query) qs.set("q", query);
+      if (fieldValue("city")) qs.set("city", fieldValue("city"));
       if (currentTab === "favorites") qs.set("tab", "favorites");
 
       return qs.toString()
@@ -374,22 +595,172 @@
         : "imoveis.html";
     }
 
-    function syncUrl(params) {
-      history.replaceState(null, "", buildPublicUrl(params));
+    function syncUrl() {
+      history.replaceState(null, "", buildPublicUrl());
     }
 
-    function renderSearchNotice(query) {
+    const AI_ATTRIBUTE_LABELS = {
+      pt: {
+        "aesthetics.architecture.contemporary": "Arquitetura contemporânea",
+        "aesthetics.architecture.minimalist": "Arquitetura minimalista",
+        "aesthetics.architecture.postmodern": "Arquitetura pós-moderna",
+        "aesthetics.color.brightness": "Luminosidade",
+        "aesthetics.color.saturation": "Saturação das cores",
+        "aesthetics.color.visual_warmth": "Calor visual",
+        "current_state.cleanliness": "Limpeza",
+        "current_state.leisure": "Área de lazer",
+        "current_state.structural_integrity": "Integridade estrutural",
+        "current_state.ventilation": "Ventilação",
+        "livability.coziness": "Aconchego",
+        "livability.humidity": "Umidade aparente",
+        "livability.spaciousness": "Amplitude",
+        "livability.verdancy": "Presença de verde"
+      },
+      en: {
+        "aesthetics.architecture.contemporary": "Contemporary architecture",
+        "aesthetics.architecture.minimalist": "Minimalist architecture",
+        "aesthetics.architecture.postmodern": "Postmodern architecture",
+        "aesthetics.color.brightness": "Brightness",
+        "aesthetics.color.saturation": "Color saturation",
+        "aesthetics.color.visual_warmth": "Visual warmth",
+        "current_state.cleanliness": "Cleanliness",
+        "current_state.leisure": "Leisure area",
+        "current_state.structural_integrity": "Structural integrity",
+        "current_state.ventilation": "Ventilation",
+        "livability.coziness": "Coziness",
+        "livability.humidity": "Apparent humidity",
+        "livability.spaciousness": "Spaciousness",
+        "livability.verdancy": "Greenery"
+      }
+    };
+
+    const NEARBY_CATEGORY_LABELS = {
+      pt: {
+        R: "Restaurantes",
+        G: "Academias",
+        S: "Escolas",
+        H: "Hospitais",
+        SM: "Supermercados",
+        P: "Parques"
+      },
+      en: {
+        R: "Restaurants",
+        G: "Gyms",
+        S: "Schools",
+        H: "Hospitals",
+        SM: "Supermarkets",
+        P: "Parks"
+      }
+    };
+
+    function getBrowserLang() {
+      return (navigator.language || "pt").slice(0, 2).toLowerCase();
+    }
+
+    function fallbackAttributeLabel(token) {
+      const label = String(token ?? "")
+        .split(".")
+        .slice(-1)[0]
+        .replace(/_/g, " ");
+
+      return label.charAt(0).toUpperCase() + label.slice(1);
+    }
+
+    function formatAttributeLabel(token) {
+      const lang = getBrowserLang();
+      const labels = AI_ATTRIBUTE_LABELS[lang] || AI_ATTRIBUTE_LABELS.en;
+      return labels[token] || fallbackAttributeLabel(token);
+    }
+
+    function formatNearbyCategoryLabel(category) {
+      const lang = getBrowserLang();
+      const labels = NEARBY_CATEGORY_LABELS[lang] || NEARBY_CATEGORY_LABELS.en;
+      return labels[category] || category;
+    }
+
+    function formatMoneyFilter(value) {
+      return fmtPrice(Number(value));
+    }
+
+    function formatInterpretedValue(key, value) {
+      if (key === "property_type") {
+        return TYPE_LABEL[value] ?? value;
+      }
+
+      if (key === "min_price") {
+        return `A partir de ${formatMoneyFilter(value)}`;
+      }
+
+      if (key === "max_price") {
+        return `Até ${formatMoneyFilter(value)}`;
+      }
+
+      if (key === "bedrooms") {
+        return `${value} quarto${Number(value) === 1 ? "" : "s"}`;
+      }
+
+      if (key === "bathrooms") {
+        return `${value} banheiro${Number(value) === 1 ? "" : "s"}`;
+      }
+
+      if (key === "parking_spots") {
+        return `${value} vaga${Number(value) === 1 ? "" : "s"}`;
+      }
+
+      if (key === "desired_attributes") {
+        return value.map(formatAttributeLabel);
+      }
+
+      if (key === "nearby_categories") {
+        return value.map(formatNearbyCategoryLabel);
+      }
+
+      return value;
+    }
+
+    function renderInterpretedFilters(filters) {
+      const el = document.getElementById("interpreted-filters");
+
+      if (!filters || !Object.keys(filters).length) {
+        el.innerHTML = "";
+        return;
+      }
+
+      const chips = [];
+
+      Object.entries(filters).forEach(([key, value]) => {
+        if (Array.isArray(value) && !value.length) return;
+        if (value === null || value === undefined || value === "") return;
+
+        const formatted = formatInterpretedValue(key, value);
+
+        if (Array.isArray(formatted)) {
+          formatted.forEach((item) => {
+            chips.push(`<span class="chip chip--red">${item}</span>`);
+          });
+          return;
+        }
+
+        chips.push(`<span class="chip chip--red">${formatted}</span>`);
+      });
+
+      el.innerHTML = chips.join("");
+    }
+
+    function renderSearchNotice(query, interpretedFilters = null) {
       const notice = document.getElementById("search-notice");
       const text = document.getElementById("query-text");
 
       if (!query || currentTab === "favorites") {
         notice.style.display = "none";
         text.textContent = "";
+        renderInterpretedFilters(null);
         return;
       }
 
       notice.style.display = "block";
       text.textContent = `"${query}"`;
+      renderInterpretedFilters(interpretedFilters);
     }
 
     function setActiveTab(tab) {
@@ -399,10 +770,18 @@
       document.getElementById("filter-bar").style.display = tab === "favorites" ? "none" : "";
     }
 
-    async function refreshFavoriteIds() {
+    async function refreshCurrentUserAndFavorites() {
+      currentUser = null;
       favoriteIds = new Set();
 
       if (!Auth.isLoggedIn()) return;
+
+      try {
+        currentUser = await getMe();
+      } catch {
+        currentUser = null;
+        return;
+      }
 
       try {
         const favs = normalizeListResponse(await getFavorites());
@@ -413,6 +792,10 @@
     }
 
     function favoriteButtonHtml(p) {
+      if (isOwner(p)) {
+        return `<span class="owner-card-badge">Seu anúncio</span>`;
+      }
+
       const isFav = favoriteIds.has(Number(p.id));
       const label = isFav ? "Remover dos favoritos" : "Adicionar aos favoritos";
 
@@ -439,6 +822,7 @@
       const beds = p.rooms?.bedrooms ?? "—";
       const baths = p.rooms?.bathrooms ?? "—";
       const href = detailsHref(p);
+      const owns = isOwner(p);
 
       const ratingHtml = p.average_rating
         ? `<div class="chips"><span class="chip chip--red">★ ${Number(p.average_rating).toFixed(1)}</span></div>`
@@ -453,7 +837,7 @@
               ${photoHtml}
               ${favoriteButtonHtml(p)}
               <span class="property-card__badge property-card__badge--left">${typeLabel}</span>
-              <span class="property-card__badge property-card__badge--red property-card__badge--right-under-fav">
+              <span class="property-card__badge property-card__badge--red ${owns ? "property-card__badge--right-under-owner" : "property-card__badge--right-under-fav"}">
                 ${purposeLabel}
               </span>
             </div>
@@ -478,12 +862,19 @@
             ${ratingHtml}
             ${matchHtml}
 
-            <a
-              class="btn btn--ghost btn--small"
-              style="margin-top:14px;width:100%;text-align:center;"
-              href="${href}">
-              Ver detalhes
-            </a>
+            ${owns
+              ? `<a
+                   class="btn btn--ghost btn--small"
+                   style="margin-top:14px;width:100%;text-align:center;"
+                   href="anuncio_form.html?id=${p.id}">
+                   Editar anúncio
+                 </a>`
+              : `<a
+                   class="btn btn--ghost btn--small"
+                   style="margin-top:14px;width:100%;text-align:center;"
+                   href="${href}">
+                   Ver detalhes
+                 </a>`}
           </div>
         </article>`;
     }
@@ -526,6 +917,48 @@
       grid.innerHTML = items.map(renderCard).join("");
     }
 
+    function filterNaturalResultsByObjectiveFilters(items, filters) {
+      // The current natural-search endpoint only accepts the free-text query.
+      // This light client-side pass keeps manually selected objective filters
+      // respected when the user combines them with the natural-language box.
+      return items.filter((p) => {
+        if (filters.city && !String(p.city ?? "").toLowerCase().includes(filters.city.toLowerCase())) return false;
+        if (filters.neighborhood && !String(p.neighborhood ?? "").toLowerCase().includes(filters.neighborhood.toLowerCase())) return false;
+        if (filters.type && p.type !== filters.type) return false;
+        if (filters.property_purpose && p.property_purpose !== filters.property_purpose) return false;
+
+        if (filters.min_price && Number(p.price) < Number(filters.min_price)) return false;
+        if (filters.max_price && Number(p.price) > Number(filters.max_price)) return false;
+        if (filters.min_area && Number(p.area) < Number(filters.min_area)) return false;
+        if (filters.max_area && Number(p.area) > Number(filters.max_area)) return false;
+
+        if (filters.bedrooms && Number(p.rooms?.bedrooms) !== Number(filters.bedrooms)) return false;
+        if (filters.bathrooms && Number(p.rooms?.bathrooms) !== Number(filters.bathrooms)) return false;
+        if (filters.parking_spots && Number(p.rooms?.parking_spots) !== Number(filters.parking_spots)) return false;
+        if (filters.floors && Number(p.floors) !== Number(filters.floors)) return false;
+        if (filters.floor_number && Number(p.floor_number) !== Number(filters.floor_number)) return false;
+
+        if (filters.condo_name && !String(p.condo?.name ?? "").toLowerCase().includes(filters.condo_name.toLowerCase())) return false;
+
+        const boolChecks = [
+          ["living_room", p.rooms_extras?.living_room],
+          ["garden", p.rooms_extras?.garden],
+          ["kitchen", p.rooms_extras?.kitchen],
+          ["laundry_room", p.rooms_extras?.laundry_room],
+          ["pool", p.rooms_extras?.pool],
+          ["office", p.rooms_extras?.office],
+          ["condo_gym", p.condo?.gym],
+          ["condo_pool", p.condo?.pool],
+          ["condo_court", p.condo?.court],
+          ["condo_parks", p.condo?.parks],
+          ["condo_party_spaces", p.condo?.party_spaces],
+          ["condo_concierge", p.condo?.concierge],
+        ];
+
+        return boolChecks.every(([key, value]) => filters[key] !== "true" || value === true);
+      });
+    }
+
     function previewContent(p, imgUrl) {
       const typeLabel = TYPE_LABEL[p.type] ?? p.type;
       const purposeLabel = PURPOSE_LABEL[p.property_purpose] ?? p.property_purpose;
@@ -540,6 +973,8 @@
           <div class="hover-preview__title">${fmtPrice(p.price)}${p.property_purpose === "R" ? "/mês" : ""}</div>
           <p class="hover-preview__desc">${p.description ?? "Sem descrição."}</p>
           <div class="hover-preview__meta">
+            ${isOwner(p) ? `<span>Seu anúncio</span>` : ""}
+            ${hasMatchScore(p) && !isOwner(p) ? `<span>Match ${formatMatchScore(p.match_score)}</span>` : ""}
             <span>${typeLabel}</span>
             <span>${purposeLabel}</span>
             <span>${beds} quarto${beds !== 1 ? "s" : ""}</span>
@@ -600,11 +1035,12 @@
     async function load() {
       renderLoading();
 
-      const params = buildParams();
+      const query = fieldValue("q");
+      const objectiveParams = buildObjectiveParams();
 
-      syncUrl(params);
-      renderSearchNotice(params.q);
-      await refreshFavoriteIds();
+      syncUrl();
+      renderSearchNotice(query);
+      await refreshCurrentUserAndFavorites();
 
       try {
         if (currentTab === "favorites") {
@@ -618,17 +1054,23 @@
           return;
         }
 
-        const data = params.q
-          ? await searchProperties(params)
-          : await getProperties(params);
+        if (query) {
+          const data = await naturalSearch(query);
+          const naturalItems = normalizeListResponse(data);
+          const filteredItems = filterNaturalResultsByObjectiveFilters(naturalItems, objectiveParams);
+          renderSearchNotice(query, data.interpreted_filters);
+          renderItems(filteredItems);
+          return;
+        }
 
+        const data = await getProperties(objectiveParams);
         renderItems(normalizeListResponse(data));
       } catch (err) {
         renderError(
           currentTab === "favorites"
             ? "Não foi possível carregar seus favoritos."
-            : params.q
-              ? "Não foi possível executar a busca. Verifique se o endpoint de busca está disponível."
+            : query
+              ? "Não foi possível executar a busca por linguagem natural. Verifique se o endpoint /api/search/natural/ está funcionando."
               : "Não foi possível carregar os imóveis. Verifique se o servidor está rodando."
         );
 
@@ -643,6 +1085,13 @@
       }
 
       const propertyId = Number(button.dataset.favoriteId);
+      const property = lastItems.find(p => Number(p.id) === propertyId);
+
+      if (property && isOwner(property)) {
+        alert("Você não pode favoritar o próprio anúncio.");
+        return;
+      }
+
       const wasFavorite = favoriteIds.has(propertyId);
 
       button.disabled = true;
@@ -667,16 +1116,37 @@
         button.title = wasFavorite ? "Adicionar aos favoritos" : "Remover dos favoritos";
         button.setAttribute("aria-label", button.title);
       } catch (err) {
+        if (err.authExpired) {
+          alert("Sua sessão expirou. Faça login novamente para favoritar imóveis.");
+          window.location.href = "login.html";
+          return;
+        }
+
         alert(err.message || "Não foi possível atualizar os favoritos.");
       } finally {
         button.disabled = false;
       }
     }
 
+    function clearFilters() {
+      Object.values(fields).forEach((field) => {
+        if (field.type === "checkbox") {
+          field.checked = false;
+        } else {
+          field.value = "";
+        }
+      });
+
+      setActiveTab("all");
+      load();
+    }
+
     document.getElementById("btn-filter").addEventListener("click", () => {
       setActiveTab("all");
       load();
     });
+
+    document.getElementById("btn-clear").addEventListener("click", clearFilters);
 
     document.getElementById("filter-bar").addEventListener("keydown", (e) => {
       if (e.key === "Enter") {

@@ -10,6 +10,22 @@
   <link rel="stylesheet" href="styles.css">
 
   <style>
+    .owner-box {
+      border: 1px solid rgba(37, 99, 235, .24);
+      background: #eff6ff;
+      color: #1e3a8a;
+      border-radius: 18px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      font-size: .94rem;
+      line-height: 1.45;
+    }
+
+    .owner-box strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
     .photo-viewer {
       background: #fff;
       border: 1px solid var(--hm-border);
@@ -62,17 +78,8 @@
       place-items: center;
     }
 
-    .photo-nav:hover {
-      background: #fff;
-    }
-
-    .photo-nav--prev {
-      left: 16px;
-    }
-
-    .photo-nav--next {
-      right: 16px;
-    }
+    .photo-nav--prev { left: 16px; }
+    .photo-nav--next { right: 16px; }
 
     .photo-counter {
       position: absolute;
@@ -106,9 +113,7 @@
       padding: 0;
     }
 
-    .photo-thumb.is-active {
-      border-color: var(--hm-red);
-    }
+    .photo-thumb.is-active { border-color: var(--hm-red); }
 
     .photo-thumb img {
       width: 100%;
@@ -152,9 +157,7 @@
       padding: 26px;
     }
 
-    .lightbox.is-open {
-      display: flex;
-    }
+    .lightbox.is-open { display: flex; }
 
     .lightbox__image {
       max-width: min(1180px, 94vw);
@@ -192,13 +195,8 @@
       font-size: 2rem;
     }
 
-    .lightbox__nav--prev {
-      left: 24px;
-    }
-
-    .lightbox__nav--next {
-      right: 24px;
-    }
+    .lightbox__nav--prev { left: 24px; }
+    .lightbox__nav--next { right: 24px; }
 
     .lightbox__caption {
       position: fixed;
@@ -217,16 +215,6 @@
       .photo-viewer__main {
         min-height: 260px;
         height: 42vh;
-      }
-
-      .photo-nav {
-        width: 40px;
-        height: 40px;
-      }
-
-      .lightbox__nav {
-        width: 46px;
-        height: 46px;
       }
     }
   </style>
@@ -262,7 +250,7 @@
   <script type="module">
     import {
       getProperty, getReviews, createReview,
-      addFavorite, removeFavorite, getFavorites,
+      addFavorite, removeFavorite, getFavorites, getMe,
       Auth, fmtPrice, TYPE_LABEL, PURPOSE_LABEL, BASE_URL
     } from "./assets/api.js";
 
@@ -287,10 +275,6 @@
           Nenhum imóvel selecionado. <a href="imoveis.html">Ver lista de imóveis →</a>
         </div>`;
       throw new Error("No id");
-    }
-
-    function getBrowserLang() {
-      return (navigator.language || "pt").slice(0, 2).toLowerCase();
     }
 
     const AI_ATTRIBUTE_LABELS = {
@@ -328,12 +312,12 @@
       }
     };
 
-    function fallbackAttributeLabel(token) {
-      const label = String(token ?? "")
-        .split(".")
-        .slice(-1)[0]
-        .replace(/_/g, " ");
+    function getBrowserLang() {
+      return (navigator.language || "pt").slice(0, 2).toLowerCase();
+    }
 
+    function fallbackAttributeLabel(token) {
+      const label = String(token ?? "").split(".").slice(-1)[0].replace(/_/g, " ");
       return label.charAt(0).toUpperCase() + label.slice(1);
     }
 
@@ -345,6 +329,29 @@
 
     function formatStrength(value) {
       return `${Math.round(Number(value || 0) * 100)}%`;
+    }
+
+    function resolveImageUrl(url) {
+      if (!url) return "";
+      if (url.startsWith("http://") || url.startsWith("https://")) return url;
+      if (url.startsWith("/")) return `${BASE_URL}${url}`;
+      return `${BASE_URL}/${url}`;
+    }
+
+    function stars(rating) {
+      const r = Math.round(rating || 0);
+      return "★".repeat(r) + "☆".repeat(5 - r);
+    }
+
+    function isOwner(prop, user) {
+      if (!prop || !user) return false;
+
+      const owner = prop.owner ?? prop.owner_id ?? prop.ownerId;
+      if (owner !== undefined && owner !== null) {
+        return Number(owner) === Number(user.id);
+      }
+
+      return prop.owner_name && prop.owner_name === user.name;
     }
 
     function hasMatchScore(value) {
@@ -379,17 +386,6 @@
         </div>`;
     }
 
-    function resolveImageUrl(url) {
-      if (!url) return "";
-      if (url.startsWith("http://") || url.startsWith("https://")) return url;
-      return `${BASE_URL}${url}`;
-    }
-
-    function stars(rating) {
-      const r = Math.round(rating || 0);
-      return "★".repeat(r) + "☆".repeat(5 - r);
-    }
-
     function photoAttributes(photo, prop) {
       if (photo?.subjective_attributes?.length) {
         return photo.subjective_attributes.map(a => ({
@@ -398,7 +394,6 @@
         }));
       }
 
-      // Fallback for older backend responses that do not expose per-photo attributes.
       return (prop?.subjective_attributes ?? []).map(a => ({
         token: a.attribute_token,
         value: a.strength_mean
@@ -529,11 +524,8 @@
       const photo = currentPhotos[currentPhotoIndex];
       if (!photo) return;
 
-      const img = document.getElementById("lightbox-image");
-      const caption = document.getElementById("lightbox-caption");
-
-      img.src = photo.resolvedUrl;
-      caption.textContent = `Foto ${currentPhotoIndex + 1} de ${currentPhotos.length}`;
+      document.getElementById("lightbox-image").src = photo.resolvedUrl;
+      document.getElementById("lightbox-caption").textContent = `Foto ${currentPhotoIndex + 1} de ${currentPhotos.length}`;
     }
 
     function renderReviews(reviews) {
@@ -553,8 +545,81 @@
       ).join("");
     }
 
+    function ownerNoticeHtml(prop) {
+      return `
+        <div class="owner-box">
+          <strong>Este anúncio é seu.</strong>
+          Você está visualizando como anunciante. Por isso, ações de buscador como favoritar,
+          avaliar ou demonstrar interesse ficam indisponíveis no próprio anúncio.
+          <div style="margin-top:10px">
+            <a class="btn btn--small" href="anuncio_form.html?id=${prop.id}">Editar anúncio</a>
+          </div>
+        </div>`;
+    }
+
+    function actionButtonsHtml(prop, ownsProperty, isFav) {
+      if (ownsProperty) {
+        return `
+          <div class="details-actions">
+            <a class="btn" href="anuncio_form.html?id=${prop.id}">Editar anúncio</a>
+            <a class="btn btn--ghost" href="anunciante.html">Meus anúncios</a>
+            <a class="btn btn--ghost" href="imoveis.html">← Ver outros</a>
+          </div>`;
+      }
+
+      return `
+        <div class="details-actions">
+          ${Auth.isLoggedIn()
+            ? `<button class="btn" id="btn-fav">${isFav ? "♥ Favoritado" : "♡ Favoritar"}</button>`
+            : `<a class="btn" href="login.html?next=detalhes.html?id=${id}">Favoritar</a>`}
+          <a class="btn btn--ghost" href="imoveis.html">← Ver outros</a>
+        </div>`;
+    }
+
+    function reviewFormHtml(ownsProperty) {
+      if (ownsProperty) {
+        return `
+          <div class="owner-box">
+            <strong>Avaliações indisponíveis para o dono.</strong>
+            Você não pode avaliar o próprio anúncio.
+          </div>`;
+      }
+
+      if (!Auth.isLoggedIn()) {
+        return `<p class="muted"><a href="login.html">Entre</a> para deixar uma avaliação.</p>`;
+      }
+
+      return `
+        <div class="review-form">
+          <h3>Deixe sua avaliação</h3>
+          <div id="review-alert"></div>
+
+          <div class="field">
+            <label for="r-rating">Nota (1–5)</label>
+            <select id="r-rating">
+              <option value="5">★★★★★ Excelente</option>
+              <option value="4">★★★★☆ Muito bom</option>
+              <option value="3">★★★☆☆ Bom</option>
+              <option value="2">★★☆☆☆ Regular</option>
+              <option value="1">★☆☆☆☆ Ruim</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="r-comment">Comentário (opcional)</label>
+            <textarea
+              id="r-comment"
+              rows="3"
+              style="width:100%;border:1px solid var(--hm-border);border-radius:14px;padding:10px 12px;font:inherit;resize:vertical;"
+              placeholder="Compartilhe sua experiência…"></textarea>
+          </div>
+
+          <button class="btn" id="btn-review">Enviar avaliação</button>
+        </div>`;
+    }
+
     async function render() {
-      let prop, reviews, isFav = false;
+      let prop, reviews, user = null, isFav = false;
 
       try {
         [prop, reviews] = await Promise.all([getProperty(id), getReviews(id)]);
@@ -567,6 +632,16 @@
       currentProperty = prop;
 
       if (Auth.isLoggedIn()) {
+        try {
+          user = await getMe();
+        } catch {
+          user = null;
+        }
+      }
+
+      const ownsProperty = isOwner(prop, user);
+
+      if (Auth.isLoggedIn() && !ownsProperty) {
         try {
           const favsRaw = await getFavorites();
           const favs = Array.isArray(favsRaw) ? favsRaw : (favsRaw.results ?? []);
@@ -590,6 +665,8 @@
           </p>
         </section>
 
+        ${ownsProperty ? ownerNoticeHtml(prop) : ""}
+
         <section class="details-hero">
           ${photoViewerHtml(prop)}
 
@@ -606,7 +683,7 @@
                 </span>
               </div>` : ""}
 
-            ${matchHtml}
+            ${!ownsProperty ? matchHtml : ""}
 
             <p class="muted">${prop.description ?? ""}</p>
 
@@ -637,12 +714,7 @@
               ${aiAttributesHtml(prop.subjective_attributes)}
             </div>
 
-            <div class="details-actions">
-              ${Auth.isLoggedIn()
-                ? `<button class="btn" id="btn-fav">${isFav ? "♥ Favoritado" : "♡ Favoritar"}</button>`
-                : `<a class="btn" href="login.html?next=detalhes.html?id=${id}">Favoritar</a>`}
-              <a class="btn btn--ghost" href="imoveis.html">← Ver outros</a>
-            </div>
+            ${actionButtonsHtml(prop, ownsProperty, isFav)}
           </aside>
         </section>
 
@@ -659,40 +731,14 @@
             ${renderReviews(reviews)}
           </div>
 
-          ${Auth.isLoggedIn() ? `
-          <div class="review-form">
-            <h3>Deixe sua avaliação</h3>
-            <div id="review-alert"></div>
-
-            <div class="field">
-              <label for="r-rating">Nota (1–5)</label>
-              <select id="r-rating">
-                <option value="5">★★★★★ Excelente</option>
-                <option value="4">★★★★☆ Muito bom</option>
-                <option value="3">★★★☆☆ Bom</option>
-                <option value="2">★★☆☆☆ Regular</option>
-                <option value="1">★☆☆☆☆ Ruim</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="r-comment">Comentário (opcional)</label>
-              <textarea
-                id="r-comment"
-                rows="3"
-                style="width:100%;border:1px solid var(--hm-border);border-radius:14px;padding:10px 12px;font:inherit;resize:vertical;"
-                placeholder="Compartilhe sua experiência…"></textarea>
-            </div>
-
-            <button class="btn" id="btn-review">Enviar avaliação</button>
-          </div>` : `<p class="muted"><a href="login.html">Entre</a> para deixar uma avaliação.</p>`}
+          ${reviewFormHtml(ownsProperty)}
         </section>`;
 
       bindPhotoViewerEvents();
 
       const favBtn = document.getElementById("btn-fav");
 
-      if (favBtn) {
+      if (favBtn && !ownsProperty) {
         favBtn.addEventListener("click", async () => {
           try {
             if (isFav) {
@@ -712,7 +758,7 @@
 
       const revBtn = document.getElementById("btn-review");
 
-      if (revBtn) {
+      if (revBtn && !ownsProperty) {
         revBtn.addEventListener("click", async () => {
           const alertEl = document.getElementById("review-alert");
           alertEl.innerHTML = "";
@@ -733,6 +779,7 @@
             const data = err.data || {};
             const msg = data.detail
               || Object.values(data).flat().find(Boolean)
+              || err.message
               || "Erro ao enviar avaliação.";
 
             alertEl.innerHTML = `<div class="alert alert--error">${msg}</div>`;

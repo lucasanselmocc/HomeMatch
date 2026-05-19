@@ -23,14 +23,10 @@ export const Auth = {
 
 export function formatApiError(data, fallback = "Erro na requisição.") {
   if (!data) return fallback;
-
   if (typeof data === "string") return data;
 
   if (Array.isArray(data)) {
-    const parts = data
-      .map((item) => formatApiError(item, ""))
-      .filter(Boolean);
-
+    const parts = data.map((item) => formatApiError(item, "")).filter(Boolean);
     return parts.join(" ") || fallback;
   }
 
@@ -55,15 +51,9 @@ export function formatApiError(data, fallback = "Erro na requisição.") {
       }
 
       if (typeof value === "object") {
-        const entries = Object.entries(value);
-
-        if (!entries.length) return;
-
-        entries.forEach(([key, child]) => {
-          const nextPrefix = prefix ? `${prefix}.${key}` : key;
-          walk(child, nextPrefix);
+        Object.entries(value).forEach(([key, child]) => {
+          walk(child, prefix ? `${prefix}.${key}` : key);
         });
-
         return;
       }
 
@@ -71,7 +61,6 @@ export function formatApiError(data, fallback = "Erro na requisição.") {
     }
 
     walk(data);
-
     return parts.join(" | ") || fallback;
   }
 
@@ -95,7 +84,6 @@ async function req(path, { method = "GET", body, auth = false, isForm = false } 
 
     if (res.status === 401) {
       Auth.clear();
-
       throw Object.assign(new Error("Sessão expirada. Faça login novamente."), {
         status: res.status,
         data: err,
@@ -104,7 +92,7 @@ async function req(path, { method = "GET", body, auth = false, isForm = false } 
     }
 
     throw Object.assign(
-      new Error(formatApiError(err, `Erro HTTP ${res.status}. Verifique os campos enviados.`)),
+      new Error(formatApiError(err, `Erro HTTP ${res.status}.`)),
       { status: res.status, data: err }
     );
   }
@@ -183,11 +171,6 @@ export async function getProperties(params = {}) {
   return req(`/api/properties/${qs ? "?" + qs : ""}`);
 }
 
-export async function searchProperties(params = {}) {
-  const qs = queryString(params);
-  return req(`/api/search/properties/${qs ? "?" + qs : ""}`);
-}
-
 export async function getProperty(id) {
   return req(`/api/properties/${id}/`);
 }
@@ -243,6 +226,19 @@ export async function getMyProperties() {
     if (p.owner !== undefined && p.owner !== null) return Number(p.owner) === Number(me.id);
     if (p.owner_id !== undefined && p.owner_id !== null) return Number(p.owner_id) === Number(me.id);
     return p.owner_name === me.name;
+  });
+}
+
+// Search
+export async function searchProperties(params = {}) {
+  const qs = queryString(params);
+  return req(`/api/search/properties/${qs ? "?" + qs : ""}`);
+}
+
+export async function naturalSearch(query) {
+  return req("/api/search/natural/", {
+    method: "POST",
+    body: { query },
   });
 }
 
