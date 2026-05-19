@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.core.exceptions import ObjectDoesNotExist
 
 from apps.properties.repositories import PhotoRepository, PropertyRepository, ReviewRepository
+from apps.search.embeddings import EmbeddingService
 
 
 class MatchScoreUseCase:
@@ -277,12 +278,13 @@ class PropertyUseCase:
         if condo_data:
             condo, _ = PropertyRepository.get_or_create_condo(condo_data)
 
-        return PropertyRepository.create_property(
+        property_obj = PropertyRepository.create_property(
             rooms=rooms,
             rooms_extras=rooms_extras,
             condo=condo,
             validated_data=validated_data,
         )
+        return EmbeddingService.refresh_property_embedding(property_obj)
 
     @staticmethod
     def update_property(instance, validated_data):
@@ -304,7 +306,8 @@ class PropertyUseCase:
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        return PropertyRepository.save_model(instance)
+        PropertyRepository.save_model(instance)
+        return EmbeddingService.refresh_property_embedding(instance)
 
     @staticmethod
     def delete_property(instance):

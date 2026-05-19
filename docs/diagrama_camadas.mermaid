@@ -11,6 +11,7 @@ flowchart TB
             V7["AnalyzePropertyView"]
             V8["RegisterUserView"]
             V9["UserViewSet"]
+            V10["SearchNaturalView"]
         end
         subgraph SERIAL["Serializers"]
             S1["PropertiesReadSerializer"]
@@ -21,6 +22,8 @@ flowchart TB
             S6["UserSerializer"]
             S7["RegisterSerializer"]
             S8["AnalyzePropertyRequestSerializer"]
+            S9["NaturalSearchRequestSerializer"]
+            S10["NaturalSearchCriteriaSerializer"]
         end
         subgraph PERMS["Permissions"]
             P1["IsAdvertiser"]
@@ -41,6 +44,10 @@ flowchart TB
             SV2["UserService"]
             SV3["FavoriteService"]
             CL1["AiVisionClient"]
+            SV4["NaturalSearchService"]
+            SV5["NaturalLanguageQueryInterpreter"]
+            SV6["EmbeddingService"]
+            SV7["PropertyEmbeddingDocumentBuilder"]
         end
     end
 
@@ -54,6 +61,7 @@ flowchart TB
             R5["UserRepository"]
             R6["SearchPreferenceRepository"]
             R7["FavoriteRepository"]
+            R8["SearchRepository"]
         end
         subgraph MODELS["Models"]
             M1["Properties"]
@@ -66,6 +74,7 @@ flowchart TB
             M8["SearchPreference"]
             M9["PhotoSubjectiveAttribute"]
             M10["PropertySubjectiveAttribute"]
+            M11["NearbyPlaces"]
         end
     end
 

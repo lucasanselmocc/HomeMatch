@@ -56,7 +56,7 @@ class PropertiesReadSerializer(serializers.ModelSerializer):
     images = PropertiesPhotosSerializer(many=True, read_only=True, source="photos")
     nearby_places = NearbyPlacesSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
-    match_score = serializers.SerializerMethodField()
+    search_match_score = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source="owner.name", read_only=True)
     subjective_attributes = PropertySubjectiveAttributeSerializer(many=True, read_only=True)
     
@@ -65,8 +65,8 @@ class PropertiesReadSerializer(serializers.ModelSerializer):
             return obj.average_rating
         return ReviewUseCase.get_average_rating(obj)
 
-    def get_match_score(self, obj):
-        return getattr(obj, "match_score", None)
+    def get_search_match_score(self, obj):
+        return getattr(obj, "search_match_score", None)
 
     # se match_score não for calculado, remove ele da resposta
     def to_representation(self, instance):
