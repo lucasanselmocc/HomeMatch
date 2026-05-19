@@ -2,6 +2,7 @@ from django.db import transaction
 from django.db.models import Avg
 
 from apps.ai_analysis.models import PhotoSubjectiveAttribute, PropertySubjectiveAttribute
+from apps.search.embeddings import EmbeddingService
 
 
 class SubjectiveAttributeRepository:
@@ -42,3 +43,5 @@ class SubjectiveAttributeRepository:
         PropertySubjectiveAttribute.objects.filter(property=property_obj).exclude(
             attribute_token__in=current_tokens
         ).delete()
+
+        EmbeddingService.refresh_property_embedding(property_obj)

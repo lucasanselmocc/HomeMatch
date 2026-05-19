@@ -23,6 +23,7 @@ class PropertyRepository:
             rooms=rooms,
             rooms_extras=rooms_extras,
             condo=condo,
+            embedding="[]",
             **validated_data,
         )
 

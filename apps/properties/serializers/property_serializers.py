@@ -50,12 +50,16 @@ class PropertiesReadSerializer(serializers.ModelSerializer):
     images = PropertiesPhotosSerializer(many=True, read_only=True, source="photos")
     nearby_places = NearbyPlacesSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
+    search_match_score = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source="owner.name", read_only=True)
     
     def get_average_rating(self, obj):
         if hasattr(obj, "average_rating"):
             return obj.average_rating
         return ReviewUseCase.get_average_rating(obj)
+
+    def get_search_match_score(self, obj):
+        return getattr(obj, "search_match_score", None)
 
     class Meta:
         model = Properties
