@@ -14,3 +14,6 @@ openai
 celery
 redis
 google-generativeai
+channels
+channels-redis
+daphne
