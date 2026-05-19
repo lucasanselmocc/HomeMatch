@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeMatch | Anúncio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    .form-page-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 420px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .form-card,
+    .media-card {
+      background: #fff;
+      border: 1px solid var(--hm-border);
+      border-radius: 28px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, .06);
+      padding: 24px;
+    }
+
+    .form-section {
+      border-top: 1px solid var(--hm-border);
+      margin-top: 24px;
+      padding-top: 24px;
+    }
+
+    .form-section:first-child {
+      border-top: 0;
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    .form-section h2,
+    .media-card h2 {
+      margin-bottom: 12px;
+    }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .checkbox-card {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--hm-border);
+      border-radius: 14px;
+      padding: 10px 12px;
+      color: var(--hm-muted);
+      font-weight: 700;
+      user-select: none;
+    }
+
+    .checkbox-card input {
+      width: auto;
+    }
+
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid var(--hm-border);
+      border-radius: 18px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      background: #fafafa;
+    }
+
+    .switch-row strong {
+      display: block;
+    }
+
+    .switch-row span {
+      display: block;
+      color: var(--hm-muted);
+      font-size: .88rem;
+      margin-top: 2px;
+    }
+
+    .switch {
+      position: relative;
+      width: 54px;
+      height: 30px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: #cbd5e1;
+      border-radius: 999px;
+      transition: .15s ease;
+    }
+
+    .switch-slider::before {
+      content: "";
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: .15s ease;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, .18);
+    }
+
+    .switch input:checked + .switch-slider {
+      background: var(--hm-red);
+    }
+
+    .switch input:checked + .switch-slider::before {
+      transform: translateX(24px);
+    }
+
+    .condo-section.is-hidden {
+      display: none;
+    }
+
+    .media-card {
+      position: sticky;
+      top: 96px;
+    }
+
+    .image-carousel {
+      border: 1px solid var(--hm-border);
+      border-radius: 22px;
+      overflow: hidden;
+      background: #f8fafc;
+      margin-top: 14px;
+    }
+
+    .image-carousel__main {
+      height: 280px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #fee2e2, #f8fafc);
+    }
+
+    .image-carousel__main img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .image-carousel__empty {
+      text-align: center;
+      padding: 24px;
+      color: var(--hm-muted);
+      font-weight: 700;
+    }
+
+    .image-carousel__nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 38px;
+      height: 38px;
+      border: 0;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .92);
+      color: var(--hm-text);
+      font-size: 1.3rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .18);
+    }
+
+    .image-carousel__nav:hover {
+      background: #fff;
+    }
+
+    .image-carousel__nav--prev {
+      left: 12px;
+    }
+
+    .image-carousel__nav--next {
+      right: 12px;
+    }
+
+    .image-carousel__counter {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      background: rgba(15, 23, 42, .78);
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    .image-carousel__tag {
+      position: absolute;
+      left: 12px;
+      bottom: 12px;
+      background: rgba(255, 255, 255, .92);
+      color: var(--hm-text);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: .78rem;
+      font-weight: 900;
+    }
+
+    .image-carousel__body {
+      padding: 14px;
+    }
+
+    .image-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .image-thumbs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px 14px 14px;
+      border-top: 1px solid var(--hm-border);
+    }
+
+    .image-thumb {
+      width: 64px;
+      height: 48px;
+      flex: 0 0 auto;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 0;
+      overflow: hidden;
+      background: #e2e8f0;
+      cursor: pointer;
+    }
+
+    .image-thumb.is-active {
+      border-color: var(--hm-red);
+    }
+
+    .image-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .btn-danger-lite {
+      background: #fff;
+      color: var(--hm-red);
+      border: 1px solid rgba(220, 38, 38, .24);
+      box-shadow: none;
+    }
+
+    .btn-danger-lite:hover {
+      background: #fef2f2;
+    }
+
+    .save-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    .save-actions .btn {
+      min-width: 180px;
+    }
+
+    @media (max-width: 1020px) {
+      .form-page-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .media-card {
+        position: static;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .checkbox-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .image-carousel__main {
+        height: 230px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a class="brand" href="index.html" aria-label="HomeMatch">
+        <img class="brand-logo" src="assets/homematch-logo.jpeg" alt="HomeMatch">
+      </a>
+
+      <nav class="navbar__links">
+        <a href="index.html">Início</a>
+        <a href="imoveis.html">Imóveis</a>
+        <a href="anunciante.html">Meus anúncios</a>
+        <a class="btn btn--small btn--ghost" href="perfil.html">Minha Conta</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-title">
+      <span class="kicker">Área do anunciante</span>
+      <h1 id="page-title">Adicionar imóvel</h1>
+      <p class="lead">Cadastre os dados do imóvel e adicione as fotos na mesma tela.</p>
+    </section>
+
+    <div id="alert"></div>
+
+    <div class="form-page-layout">
+      <form class="form-card" id="property-form">
+        <section class="form-section">
+          <h2>Informações principais</h2>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="type">Tipo</label>
+              <select id="type" required>
+                <option value="H">Casa</option>
+                <option value="A">Apartamento</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="purpose">Finalidade</label>
+              <select id="purpose" required>
+                <option value="S">Venda</option>
+                <option value="R">Aluguel</option>
+                <option value="B">Venda/Aluguel</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="price">Preço</label>
+              <input id="price" type="number" min="1" step="0.01" required placeholder="Ex: 3200">
+            </div>
+
+            <div class="field">
+              <label for="area">Área em m²</label>
+              <input id="area" type="number" min="1" step="0.1" required placeholder="Ex: 86">
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="floors">Andares</label>
+              <input id="floors" type="number" min="1" value="1" required>
+            </div>
+
+            <div class="field" id="floor-box">
+              <label for="floor">Andar do apartamento</label>
+              <input id="floor" type="number" min="1" placeholder="Ex: 7">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="description">Descrição</label>
+            <textarea
+              id="description"
+              rows="5"
+              required
+              placeholder="Descreva o imóvel, localização e diferenciais."
+              style="width:100%;border:1px solid var(--hm-border);border-radius:14px;padding:10px 12px;font:inherit;resize:vertical;"></textarea>
+          </div>
+
+          <div class="chips">
+            <label class="chip"><input id="mobilia" type="checkbox"> Mobiliado</label>
+            <label class="chip"><input id="status" type="checkbox" checked> Anúncio ativo</label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>Endereço</h2>
+
+          <div class="field">
+            <label for="address">Endereço</label>
+            <input id="address" type="text" required placeholder="Rua, número e complemento">
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="neighborhood">Bairro</label>
+              <input id="neighborhood" type="text" required placeholder="Ex: Ponta Negra">
+            </div>
+
+            <div class="field">
+              <label for="city">Cidade</label>
+              <input id="city" type="text" required placeholder="Ex: Natal">
+            </div>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>Cômodos</h2>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="bedrooms">Quartos</label>
+              <input id="bedrooms" type="number" min="0" value="1" required>
+            </div>
+
+            <div class="field">
+              <label for="bathrooms">Banheiros</label>
+              <input id="bathrooms" type="number" min="0" value="1" required>
+            </div>
+
+            <div class="field">
+              <label for="parking">Vagas</label>
+              <input id="parking" type="number" min="0" value="0" required>
+            </div>
+          </div>
+
+          <div class="checkbox-grid">
+            <label class="checkbox-card"><input id="living" type="checkbox" checked> Sala</label>
+            <label class="checkbox-card"><input id="garden" type="checkbox"> Jardim</label>
+            <label class="checkbox-card"><input id="kitchen" type="checkbox" checked> Cozinha</label>
+            <label class="checkbox-card"><input id="laundry" type="checkbox"> Lavanderia</label>
+            <label class="checkbox-card"><input id="pool" type="checkbox"> Piscina</label>
+            <label class="checkbox-card"><input id="office" type="checkbox"> Escritório</label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>Condomínio</h2>
+
+          <div class="switch-row">
+            <div>
+              <strong>O imóvel está em condomínio?</strong>
+              <span>Ative apenas se houver informações de condomínio para cadastrar.</span>
+            </div>
+
+            <label class="switch" aria-label="Imóvel em condomínio">
+              <input id="has-condo" type="checkbox">
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="condo-section is-hidden" id="condo-section">
+            <div class="field">
+              <label for="condo-name">Nome do condomínio</label>
+              <input id="condo-name" type="text" placeholder="Ex: Residencial Mar Azul">
+            </div>
+
+            <div class="field">
+              <label for="condo-address">Endereço do condomínio</label>
+              <input id="condo-address" type="text" placeholder="Opcional">
+            </div>
+
+            <div class="checkbox-grid">
+              <label class="checkbox-card"><input id="condo-gym" type="checkbox"> Academia</label>
+              <label class="checkbox-card"><input id="condo-pool" type="checkbox"> Piscina</label>
+              <label class="checkbox-card"><input id="condo-court" type="checkbox"> Quadra</label>
+              <label class="checkbox-card"><input id="condo-parks" type="checkbox"> Parques</label>
+              <label class="checkbox-card"><input id="condo-party" type="checkbox"> Salão de festas</label>
+              <label class="checkbox-card"><input id="condo-concierge" type="checkbox"> Portaria</label>
+            </div>
+          </div>
+        </section>
+
+        <div class="save-actions">
+          <button class="btn" id="save-btn" type="submit">Salvar imóvel e fotos</button>
+          <a class="btn btn--ghost" href="anunciante.html">Cancelar</a>
+        </div>
+      </form>
+
+      <aside class="media-card">
+        <h2>Fotos do imóvel</h2>
+        <p class="muted">
+          Selecione fotos agora. Elas serão enviadas automaticamente depois que o imóvel for salvo.
+        </p>
+
+        <div class="field">
+          <label for="images-input">Adicionar imagens</label>
+          <input id="images-input" type="file" accept="image/png,image/jpeg" multiple>
+        </div>
+
+        <div class="image-carousel" id="image-carousel">
+          <div class="image-carousel__main" id="carousel-main">
+            <div class="image-carousel__empty">
+              Nenhuma imagem selecionada.
+            </div>
+          </div>
+          <div class="image-carousel__body">
+            <strong id="carousel-title">Prévia das imagens</strong>
+            <p class="muted" id="carousel-help" style="font-size:.9rem;margin-top:4px;">
+              As imagens novas aparecem aqui antes do envio.
+            </p>
+            <div class="image-actions" id="image-actions"></div>
+          </div>
+          <div class="image-thumbs" id="image-thumbs" style="display:none;"></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">HomeMatch</footer>
+
+  <script type="module">
+    import {
+      Auth,
+      getMe,
+      getProperty,
+      createProperty,
+      updateProperty,
+      uploadPropertyPhoto,
+      deletePropertyPhoto,
+      resolveImageUrl
+    } from "./assets/api.js";
+
+    const params = new URLSearchParams(location.search);
+    const propertyId = params.get("id");
+    const isEditing = !!propertyId;
+
+    const alertEl = document.getElementById("alert");
+    const form = document.getElementById("property-form");
+    const saveBtn = document.getElementById("save-btn");
+    const imagesInput = document.getElementById("images-input");
+
+    let existingImages = [];
+    let selectedImages = [];
+    let carouselItems = [];
+    let carouselIndex = 0;
+
+    if (!Auth.isLoggedIn()) {
+      window.location.href = `login.html?next=${encodeURIComponent(location.pathname + location.search)}`;
+      throw new Error("Not logged in");
+    }
+
+    function showAlert(message, type = "error") {
+      alertEl.innerHTML = `<div class="alert alert--${type}">${message}</div>`;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function clearAlert() {
+      alertEl.innerHTML = "";
+    }
+
+    function val(id) {
+      return document.getElementById(id).value.trim();
+    }
+
+    function num(id, fallback = null) {
+      const value = val(id);
+      return value === "" ? fallback : Number(value);
+    }
+
+    function checked(id) {
+      return document.getElementById(id).checked;
+    }
+
+    function set(id, value) {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      if (el.type === "checkbox") {
+        el.checked = !!value;
+      } else {
+        el.value = value ?? "";
+      }
+    }
+
+    function setCondoVisible(visible) {
+      document.getElementById("has-condo").checked = visible;
+      document.getElementById("condo-section").classList.toggle("is-hidden", !visible);
+
+      const condoName = document.getElementById("condo-name");
+      condoName.required = visible;
+
+      if (!visible) {
+        set("condo-name", "");
+        set("condo-address", "");
+        set("condo-gym", false);
+        set("condo-pool", false);
+        set("condo-court", false);
+        set("condo-parks", false);
+        set("condo-party", false);
+        set("condo-concierge", false);
+      }
+    }
+
+    function updateFloorField() {
+      const isApartment = val("type") === "A";
+      const floorBox = document.getElementById("floor-box");
+      const floorInput = document.getElementById("floor");
+
+      floorBox.style.display = isApartment ? "" : "none";
+      floorInput.required = isApartment;
+
+      if (!isApartment) {
+        set("floor", "");
+      }
+    }
+
+    function buildPayload() {
+      const type = val("type");
+      const hasCondo = checked("has-condo");
+
+      return {
+        property_purpose: val("purpose"),
+        type,
+        area: num("area"),
+        floors: num("floors"),
+        floor_number: type === "A" ? num("floor") : null,
+        price: String(num("price")),
+        address: val("address"),
+        neighborhood: val("neighborhood"),
+        city: val("city"),
+        description: val("description"),
+        status: checked("status"),
+        has_mobilia: checked("mobilia"),
+
+        rooms: {
+          bedrooms: num("bedrooms", 0),
+          bathrooms: num("bathrooms", 0),
+          parking_spots: num("parking", 0),
+        },
+
+        rooms_extras: {
+          living_room: checked("living"),
+          garden: checked("garden"),
+          kitchen: checked("kitchen"),
+          laundry_room: checked("laundry"),
+          pool: checked("pool"),
+          office: checked("office"),
+        },
+
+        condo: hasCondo ? {
+          name: val("condo-name"),
+          address: val("condo-address"),
+          gym: checked("condo-gym"),
+          pool: checked("condo-pool"),
+          court: checked("condo-court"),
+          parks: checked("condo-parks"),
+          party_spaces: checked("condo-party"),
+          concierge: checked("condo-concierge"),
+        } : null,
+      };
+    }
+
+    function fillForm(property) {
+      set("type", property.type);
+      set("purpose", property.property_purpose);
+      set("price", property.price);
+      set("area", property.area);
+      set("floors", property.floors);
+      set("floor", property.floor_number);
+      set("address", property.address);
+      set("neighborhood", property.neighborhood);
+      set("city", property.city);
+      set("description", property.description);
+      set("status", property.status !== false);
+      set("mobilia", property.has_mobilia);
+
+      set("bedrooms", property.rooms?.bedrooms);
+      set("bathrooms", property.rooms?.bathrooms);
+      set("parking", property.rooms?.parking_spots);
+
+      set("living", property.rooms_extras?.living_room);
+      set("garden", property.rooms_extras?.garden);
+      set("kitchen", property.rooms_extras?.kitchen);
+      set("laundry", property.rooms_extras?.laundry_room);
+      set("pool", property.rooms_extras?.pool);
+      set("office", property.rooms_extras?.office);
+
+      const hasCondo = !!property.condo;
+      setCondoVisible(hasCondo);
+
+      if (hasCondo) {
+        set("condo-name", property.condo?.name);
+        set("condo-address", property.condo?.address);
+        set("condo-gym", property.condo?.gym);
+        set("condo-pool", property.condo?.pool);
+        set("condo-court", property.condo?.court);
+        set("condo-parks", property.condo?.parks);
+        set("condo-party", property.condo?.party_spaces);
+        set("condo-concierge", property.condo?.concierge);
+      }
+
+      existingImages = (property.images ?? []).map((image) => ({
+        kind: "existing",
+        id: image.id,
+        name: `Foto ${image.id}`,
+        url: resolveImageUrl(image.url),
+      }));
+
+      updateFloorField();
+      rebuildCarousel();
+    }
+
+    function rebuildCarousel() {
+      carouselItems = [
+        ...existingImages,
+        ...selectedImages.map((item, index) => ({
+          kind: "new",
+          fileIndex: index,
+          name: item.file.name,
+          url: item.previewUrl,
+        })),
+      ];
+
+      if (carouselIndex >= carouselItems.length) {
+        carouselIndex = Math.max(0, carouselItems.length - 1);
+      }
+
+      renderCarousel();
+    }
+
+    function renderCarousel() {
+      const main = document.getElementById("carousel-main");
+      const thumbs = document.getElementById("image-thumbs");
+      const actions = document.getElementById("image-actions");
+      const title = document.getElementById("carousel-title");
+      const help = document.getElementById("carousel-help");
+
+      if (!carouselItems.length) {
+        main.innerHTML = `
+          <div class="image-carousel__empty">
+            Nenhuma imagem selecionada.
+          </div>`;
+        thumbs.style.display = "none";
+        thumbs.innerHTML = "";
+        actions.innerHTML = "";
+        title.textContent = "Prévia das imagens";
+        help.textContent = "As imagens novas aparecem aqui antes do envio.";
+        return;
+      }
+
+      const item = carouselItems[carouselIndex];
+
+      main.innerHTML = `
+        <img src="${item.url}" alt="${item.name}">
+        ${carouselItems.length > 1 ? `
+          <button class="image-carousel__nav image-carousel__nav--prev" type="button" id="carousel-prev" aria-label="Imagem anterior">‹</button>
+          <button class="image-carousel__nav image-carousel__nav--next" type="button" id="carousel-next" aria-label="Próxima imagem">›</button>
+        ` : ""}
+        <span class="image-carousel__tag">${item.kind === "existing" ? "Já enviada" : "Nova imagem"}</span>
+        <span class="image-carousel__counter">${carouselIndex + 1} / ${carouselItems.length}</span>
+      `;
+
+      title.textContent = item.name;
+      help.textContent = item.kind === "existing"
+        ? "Esta foto já está salva no anúncio."
+        : "Esta foto será enviada quando você salvar o imóvel.";
+
+      actions.innerHTML = item.kind === "existing"
+        ? `<button class="btn btn--small btn-danger-lite" type="button" id="remove-existing-image">Remover foto salva</button>`
+        : `<button class="btn btn--small btn-danger-lite" type="button" id="remove-new-image">Remover da seleção</button>`;
+
+      thumbs.style.display = "";
+      thumbs.innerHTML = carouselItems.map((thumb, index) => `
+        <button class="image-thumb ${index === carouselIndex ? "is-active" : ""}" type="button" data-image-index="${index}" aria-label="Ver imagem ${index + 1}">
+          <img src="${thumb.url}" alt="">
+        </button>
+      `).join("");
+
+      document.getElementById("carousel-prev")?.addEventListener("click", () => {
+        carouselIndex = (carouselIndex - 1 + carouselItems.length) % carouselItems.length;
+        renderCarousel();
+      });
+
+      document.getElementById("carousel-next")?.addEventListener("click", () => {
+        carouselIndex = (carouselIndex + 1) % carouselItems.length;
+        renderCarousel();
+      });
+
+      document.getElementById("remove-new-image")?.addEventListener("click", () => {
+        const current = carouselItems[carouselIndex];
+        if (current.kind !== "new") return;
+
+        const item = selectedImages[current.fileIndex];
+        if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl);
+
+        selectedImages.splice(current.fileIndex, 1);
+        rebuildCarousel();
+      });
+
+      document.getElementById("remove-existing-image")?.addEventListener("click", async () => {
+        const current = carouselItems[carouselIndex];
+        if (current.kind !== "existing") return;
+
+        const ok = confirm("Remover esta foto do anúncio?");
+        if (!ok) return;
+
+        try {
+          await deletePropertyPhoto(current.id);
+          existingImages = existingImages.filter((image) => image.id !== current.id);
+          showAlert("Foto removida.", "success");
+          rebuildCarousel();
+        } catch (err) {
+          showAlert(err.message || "Não foi possível remover a foto.");
+        }
+      });
+    }
+
+    function addSelectedFiles(files) {
+      const images = files.filter((file) => file.type.startsWith("image/"));
+
+      images.forEach((file) => {
+        selectedImages.push({
+          file,
+          previewUrl: URL.createObjectURL(file),
+        });
+      });
+
+      rebuildCarousel();
+    }
+
+    async function uploadSelectedImages(propertyId) {
+      if (!selectedImages.length) return;
+
+      const startOrder = existingImages.length + 1;
+
+      for (let i = 0; i < selectedImages.length; i += 1) {
+        await uploadPropertyPhoto(propertyId, selectedImages[i].file, startOrder + i);
+      }
+
+      selectedImages.forEach((item) => URL.revokeObjectURL(item.previewUrl));
+      selectedImages = [];
+    }
+
+    function formatError(err) {
+      if (err?.data && typeof err.data === "object") {
+        const parts = [];
+
+        function walk(value, path = "") {
+          if (typeof value === "string") {
+            parts.push(path ? `${path}: ${value}` : value);
+            return;
+          }
+
+          if (Array.isArray(value)) {
+            value.forEach((item) => walk(item, path));
+            return;
+          }
+
+          if (value && typeof value === "object") {
+            Object.entries(value).forEach(([key, child]) => {
+              walk(child, path ? `${path}.${key}` : key);
+            });
+          }
+        }
+
+        walk(err.data);
+
+        if (parts.length) return parts.join(" | ");
+      }
+
+      return err?.message || "Erro ao salvar imóvel.";
+    }
+
+    async function init() {
+      try {
+        const user = await getMe();
+
+        if (user.user_type !== "A") {
+          showAlert("Esta área é exclusiva para anunciantes.");
+          form.style.display = "none";
+          return;
+        }
+
+        if (isEditing) {
+          document.getElementById("page-title").textContent = "Editar imóvel";
+          const property = await getProperty(propertyId);
+          fillForm(property);
+        } else {
+          setCondoVisible(false);
+          updateFloorField();
+          rebuildCarousel();
+        }
+      } catch (err) {
+        if (err.authExpired) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        showAlert(formatError(err));
+      }
+    }
+
+    document.getElementById("type").addEventListener("change", updateFloorField);
+
+    document.getElementById("has-condo").addEventListener("change", (event) => {
+      setCondoVisible(event.target.checked);
+    });
+
+    document.getElementById("image-thumbs").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-image-index]");
+      if (!button) return;
+
+      carouselIndex = Number(button.dataset.imageIndex);
+      renderCarousel();
+    });
+
+    imagesInput.addEventListener("change", () => {
+      addSelectedFiles(Array.from(imagesInput.files ?? []));
+      imagesInput.value = "";
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearAlert();
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Salvando…";
+
+      try {
+        const saved = isEditing
+          ? await updateProperty(propertyId, buildPayload())
+          : await createProperty(buildPayload());
+
+        const savedId = saved?.id ?? propertyId;
+
+        saveBtn.textContent = selectedImages.length ? "Enviando fotos…" : "Salvando…";
+        await uploadSelectedImages(savedId);
+
+        showAlert("Imóvel salvo com sucesso.", "success");
+
+        setTimeout(() => {
+          window.location.href = `detalhes.html?id=${savedId}`;
+        }, 700);
+      } catch (err) {
+        console.error("Erro ao salvar anúncio:", err.data || err);
+        showAlert(formatError(err));
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Salvar imóvel e fotos";
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>

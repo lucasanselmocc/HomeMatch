@@ -19,6 +19,10 @@ class PropertyRepository:
 
     @staticmethod
     def create_property(*, rooms, rooms_extras, condo, validated_data):
+        # Properties.embedding is NOT NULL in the model, but the write serializer
+        # excludes it from user input. Give new properties a safe default.
+        validated_data.setdefault("embedding", "[]")
+
         return Properties.objects.create(
             rooms=rooms,
             rooms_extras=rooms_extras,

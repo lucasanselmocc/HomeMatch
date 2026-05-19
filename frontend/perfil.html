@@ -18,6 +18,7 @@
       <nav class="navbar__links">
         <a href="index.html">Início</a>
         <a href="imoveis.html">Imóveis</a>
+        <a id="nav-advertiser" href="anunciante.html" style="display:none;">Meus anúncios</a>
         <a class="btn btn--small btn--ghost" id="btn-logout">Sair</a>
       </nav>
     </div>
@@ -37,13 +38,11 @@
       fmtPrice, TYPE_LABEL, PURPOSE_LABEL, BASE_URL
     } from "./assets/api.js";
 
-    // Guard: must be logged in
     if (!Auth.isLoggedIn()) {
       window.location.href = "login.html?next=perfil.html";
       throw new Error("Not logged in");
     }
 
-    // Logout
     document.getElementById("btn-logout").addEventListener("click", async () => {
       await logout();
       window.location.href = "index.html";
@@ -51,7 +50,6 @@
 
     const main = document.getElementById("main-content");
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
     const USER_TYPE_LABEL = { S: "Buscador", A: "Anunciante" };
 
     const GENDER_OPTIONS = [
@@ -73,111 +71,46 @@
       return `${BASE_URL}/${url}`;
     }
 
-    function hasMatchScore(p) {
-      return p.match_score !== undefined && p.match_score !== null;
-    }
-
-    function formatMatchScore(value) {
-      const numeric = Number(value);
-
-      if (Number.isNaN(numeric)) return null;
-
-      const percentage = numeric <= 1 ? numeric * 100 : numeric;
-      return `${Math.round(percentage)}%`;
-    }
-
-    function matchScoreHtml(p) {
-      if (!hasMatchScore(p)) return "";
-
-      const formatted = formatMatchScore(p.match_score);
-      if (!formatted) return "";
-
-      return `
-        <div class="chips" style="margin-top:10px;">
-          <span class="chip chip--red" title="Compatibilidade calculada pela busca">
-            Match ${formatted}
-          </span>
-        </div>`;
-    }
-
-    function detailsHref(p) {
-      const params = new URLSearchParams();
-      params.set("id", p.id);
-
-      if (hasMatchScore(p)) {
-        params.set("match_score", p.match_score);
-      }
-
-      return `detalhes.html?${params.toString()}`;
-    }
-
-    function normalizeGender(value) {
-      const allowed = GENDER_OPTIONS.map(option => option.value);
-
-      if (allowed.includes(value ?? "")) {
-        return value ?? "";
-      }
-
-      return "";
-    }
-
-    function genderOptionsHtml(currentValue) {
-      const normalized = normalizeGender(currentValue);
-
-      return GENDER_OPTIONS.map(option => `
-        <option value="${option.value}" ${option.value === normalized ? "selected" : ""}>
+    function genderOptionsHtml(current) {
+      return GENDER_OPTIONS.map((option) => `
+        <option value="${option.value}" ${option.value === (current ?? "") ? "selected" : ""}>
           ${option.label}
         </option>
       `).join("");
     }
 
     function renderFavCard(p) {
-      const typeLabel    = TYPE_LABEL[p.type] ?? p.type;
+      const typeLabel = TYPE_LABEL[p.type] ?? p.type;
       const purposeLabel = PURPOSE_LABEL[p.property_purpose] ?? p.property_purpose;
-      const imgSrc       = p.images?.[0]?.url ? resolveImageUrl(p.images[0].url) : null;
-      const href         = detailsHref(p);
-
-      const ratingHtml = p.average_rating
-        ? `<div class="chips"><span class="chip chip--red">★ ${Number(p.average_rating).toFixed(1)}</span></div>`
-        : "";
-
-      const matchHtml = matchScoreHtml(p);
+      const imgSrc = p.images?.[0]?.url ? resolveImageUrl(p.images[0].url) : "";
 
       return `
         <article class="property-card" data-id="${p.id}">
-          <a href="${href}">
+          <a href="detalhes.html?id=${p.id}">
             <div class="property-card__photo">
               ${imgSrc ? `<img src="${imgSrc}" alt="Foto" loading="lazy" onerror="this.remove()">` : ""}
               <span class="property-card__badge">${typeLabel}</span>
               <span class="property-card__badge property-card__badge--red" style="left:auto;right:14px;">${purposeLabel}</span>
             </div>
           </a>
+
           <div class="property-card__body">
             <div class="property-card__price">
               ${fmtPrice(p.price)}
               ${p.property_purpose === "R" ? "<span style='font-size:.75rem;color:var(--hm-muted)'>/mês</span>" : ""}
             </div>
             <p class="property-card__address">${p.neighborhood}, ${p.city}</p>
-            <div class="property-card__stats">
-              <span>🛏 ${p.rooms?.bedrooms ?? "—"}</span>
-              <span>🚿 ${p.rooms?.bathrooms ?? "—"}</span>
-              <span>📐 ${p.area} m²</span>
-            </div>
-
-            ${ratingHtml}
-            ${matchHtml}
-
             <div style="display:flex;gap:8px;margin-top:14px;">
-              <a class="btn btn--ghost btn--small" style="flex:1;text-align:center;" href="${href}">Ver</a>
+              <a class="btn btn--ghost btn--small" style="flex:1;text-align:center;" href="detalhes.html?id=${p.id}">Ver</a>
               <button class="btn btn--small" style="background:#fff;color:var(--hm-red);border:1px solid var(--hm-border);box-shadow:none;" data-remove-fav="${p.id}">Remover</button>
             </div>
           </div>
         </article>`;
     }
 
-    // Render page
     async function render() {
       let user, favs;
+
       try {
         [user, favs] = await Promise.all([getMe(), getFavorites()]);
       } catch {
@@ -186,12 +119,15 @@
         return;
       }
 
+      if (user.user_type === "A") {
+        document.getElementById("nav-advertiser").style.display = "";
+      }
+
+      const favItems = Array.isArray(favs) ? favs : (favs?.results ?? []);
       const userTypeBadge = USER_TYPE_LABEL[user.user_type] ?? user.user_type;
-      const favItems      = Array.isArray(favs) ? favs : (favs?.results ?? []);
 
       main.innerHTML = `
         <div class="profile-layout">
-          <!-- ── Sidebar ───────────────────────────────────────────── -->
           <aside>
             <div class="profile-card">
               <div class="profile-card__avatar">${avatarInitial(user.name)}</div>
@@ -200,36 +136,36 @@
               <span class="badge badge--blue" style="margin-top:8px;">${userTypeBadge}</span>
               <nav class="profile-nav">
                 <a href="#favoritos" class="active">♥ Favoritos (${favItems.length})</a>
+                ${user.user_type === "A" ? `<a href="anunciante.html">🏘️ Meus anúncios</a>` : ""}
                 <a href="#dados">✎ Meus dados</a>
               </nav>
             </div>
           </aside>
 
-          <!-- ── Main content ─────────────────────────────────────── -->
           <div class="profile-content">
-
-            <!-- Favorites -->
             <section id="favoritos">
               <h2 class="profile-section-title">Meus favoritos</h2>
               ${favItems.length
-                ? `<div class="property-grid" id="fav-grid">${favItems.map(renderFavCard).join("")}</div>`
+                ? `<div class="property-grid">${favItems.map(renderFavCard).join("")}</div>`
                 : `<div class="empty-state"><div class="empty-state__icon">🏠</div><p class="muted">Você ainda não favoritou nenhum imóvel.<br><a href="imoveis.html">Explorar imóveis →</a></p></div>`}
             </section>
 
-            <!-- Profile edit -->
             <section id="dados" style="margin-top:48px;">
               <h2 class="profile-section-title">Meus dados</h2>
               <div id="profile-alert"></div>
+
               <form id="form-profile" style="max-width:480px;">
                 <div class="field">
                   <label for="p-name">Nome</label>
                   <input id="p-name" type="text" value="${user.name ?? ""}" required>
                 </div>
+
                 <div class="field-row">
                   <div class="field">
                     <label for="p-age">Idade</label>
                     <input id="p-age" type="number" value="${user.age ?? ""}" min="1" max="120">
                   </div>
+
                   <div class="field">
                     <label for="p-gender">Gênero</label>
                     <select id="p-gender">
@@ -237,60 +173,54 @@
                     </select>
                   </div>
                 </div>
+
                 <div class="field">
-                  <label>E-mail (somente leitura)</label>
+                  <label>E-mail</label>
                   <input type="email" value="${user.email}" disabled style="background:#f4f4f4;">
                 </div>
+
                 <button type="submit" class="btn" id="btn-save">Salvar alterações</button>
               </form>
             </section>
-
           </div>
         </div>`;
 
-      // ── Remove favorite ────────────────────────────────────────────────────
-      document.querySelectorAll("[data-remove-fav]").forEach(btn => {
+      document.querySelectorAll("[data-remove-fav]").forEach((btn) => {
         btn.addEventListener("click", async () => {
-          const pid = +btn.dataset.removeFav;
+          const id = +btn.dataset.removeFav;
           btn.disabled = true;
+
           try {
-            await removeFavorite(pid);
+            await removeFavorite(id);
             btn.closest(".property-card").remove();
           } catch (err) {
-            if (err.authExpired) {
-              alert("Sua sessão expirou. Faça login novamente.");
-              window.location.href = "login.html";
-              return;
-            }
-
-            alert(err.message);
+            alert(err.message || "Não foi possível remover favorito.");
             btn.disabled = false;
           }
         });
       });
 
-      // ── Update profile ─────────────────────────────────────────────────────
-      document.getElementById("form-profile").addEventListener("submit", async (e) => {
-        e.preventDefault();
+      document.getElementById("form-profile").addEventListener("submit", async (event) => {
+        event.preventDefault();
+
         const alertEl = document.getElementById("profile-alert");
-        alertEl.innerHTML = "";
         const saveBtn = document.getElementById("btn-save");
+
+        alertEl.innerHTML = "";
         saveBtn.disabled = true;
+
         try {
           await updateMe({
-            name:   document.getElementById("p-name").value.trim(),
-            age:    document.getElementById("p-age").value || null,
+            name: document.getElementById("p-name").value.trim(),
+            age: document.getElementById("p-age").value || null,
             gender: document.getElementById("p-gender").value || null,
           });
+
           alertEl.innerHTML = `<div class="alert alert--success">Perfil atualizado!</div>`;
         } catch (err) {
-          if (err.authExpired) {
-            alertEl.innerHTML = `<div class="alert alert--error">Sessão expirada. <a href="login.html">Faça login novamente</a></div>`;
-            return;
-          }
-
           alertEl.innerHTML = `<div class="alert alert--error">${err.message}</div>`;
         }
+
         saveBtn.disabled = false;
       });
     }
@@ -299,4 +229,3 @@
   </script>
 </body>
 </html>
-

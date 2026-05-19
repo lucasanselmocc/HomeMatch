@@ -11,14 +11,15 @@ class RoomsExtrasSerializer(serializers.ModelSerializer):
         model = RoomsExtras
         exclude = ["id"]
 
-class CondoSerializer(serializers.ModelSerializer):
 
+class CondoSerializer(serializers.ModelSerializer):
     def validate_name(self, value):
         return validate_required_field(value, "name")
 
     class Meta:
         model = Condo
         exclude = ["id"]
+
 
 class RoomsSerializer(serializers.ModelSerializer):
     def validate_bedrooms(self, value):
@@ -33,21 +34,36 @@ class RoomsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rooms
         exclude = ["id"]
+
+        # Important:
+        # Rooms has a database UniqueConstraint for
+        # bedrooms + bathrooms + parking_spots.
+        #
+        # DRF automatically converts that into a UniqueTogetherValidator.
+        # That is not desired here, because the use case intentionally uses
+        # get_or_create_rooms(...). In other words, if a room combination
+        # already exists, the property should reuse it instead of rejecting
+        # the request.
+        validators = []
+
         extra_kwargs = {
-            'bedrooms': {'required': False},
-            'bathrooms': {'required': False},
-            'parking_spots': {'required': False},
+            "bedrooms": {"required": False},
+            "bathrooms": {"required": False},
+            "parking_spots": {"required": False},
         }
+
 
 class NearbyPlacesSerializer(serializers.ModelSerializer):
     class Meta:
         model = NearbyPlaces
         fields = ["name", "category", "distance_meters", "rating"]
-    
+
+
 class PropertySubjectiveAttributeSerializer(serializers.ModelSerializer):
     class Meta:
         model = PropertySubjectiveAttribute
         fields = ["attribute_token", "strength_mean"]
+
 
 class PropertiesReadSerializer(serializers.ModelSerializer):
     rooms = RoomsSerializer()
@@ -59,7 +75,7 @@ class PropertiesReadSerializer(serializers.ModelSerializer):
     match_score = serializers.SerializerMethodField()
     owner_name = serializers.CharField(source="owner.name", read_only=True)
     subjective_attributes = PropertySubjectiveAttributeSerializer(many=True, read_only=True)
-    
+
     def get_average_rating(self, obj):
         if hasattr(obj, "average_rating"):
             return obj.average_rating
@@ -68,7 +84,6 @@ class PropertiesReadSerializer(serializers.ModelSerializer):
     def get_match_score(self, obj):
         return getattr(obj, "match_score", None)
 
-    # se match_score não for calculado, remove ele da resposta
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if data["match_score"] is None:
@@ -93,27 +108,35 @@ class PropertiesWriteSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if data.get("type") == "A" and not data.get("floor_number"):
-            raise serializers.ValidationError("A floor number for an apartment is necessary")
+            raise serializers.ValidationError({
+                "floor_number": "O andar é obrigatório para apartamentos."
+            })
+
+        if data.get("type") == "H":
+            data["floor_number"] = None
+
         return data
 
     def validate_area(self, value):
         return validate_positive_number(value, "area")
-    
+
     def validate_floors(self, value):
         return validate_positive_number(value, "floors")
-    
+
     def validate_floor_number(self, value):
+        if value is None:
+            return None
         return validate_positive_number(value, "floor number")
 
     def validate_price(self, value):
         return validate_positive_number(value, "price")
-    
+
     def validate_address(self, value):
         return validate_required_field(value, "address")
-    
+
     def validate_neighborhood(self, value):
         return validate_required_field(value, "neighborhood")
-    
+
     def validate_city(self, value):
         return validate_required_field(value, "city")
 
@@ -121,3 +144,6 @@ class PropertiesWriteSerializer(serializers.ModelSerializer):
         model = Properties
         exclude = ["embedding"]
         read_only_fields = ["id", "owner"]
+        extra_kwargs = {
+            "floor_number": {"required": False, "allow_null": True},
+        }

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeMatch | Meus anúncios</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a class="brand" href="index.html" aria-label="HomeMatch">
+        <img class="brand-logo" src="assets/homematch-logo.jpeg" alt="HomeMatch">
+      </a>
+      <nav class="navbar__links">
+        <a href="index.html">Início</a>
+        <a href="imoveis.html">Imóveis</a>
+        <a href="perfil.html">Minha Conta</a>
+        <a class="btn btn--small" href="anuncio_form.html">Novo anúncio</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="page-title">
+      <span class="kicker">Área do anunciante</span>
+      <h1>Meus anúncios</h1>
+      <p class="lead">Gerencie seus imóveis publicados.</p>
+    </section>
+
+    <div id="content">
+      <div class="loading-state"><div class="spinner"></div><br>Carregando anúncios…</div>
+    </div>
+  </main>
+
+  <footer class="footer">HomeMatch</footer>
+
+  <script type="module">
+    import {
+      Auth,
+      getMe,
+      getMyProperties,
+      deleteProperty,
+      fmtPrice,
+      TYPE_LABEL,
+      PURPOSE_LABEL,
+      resolveImageUrl
+    } from "./assets/api.js";
+
+    const content = document.getElementById("content");
+
+    if (!Auth.isLoggedIn()) {
+      window.location.href = "login.html?next=anunciante.html";
+      throw new Error("Not logged in");
+    }
+
+    function imageHtml(p) {
+      const url = p.images?.[0]?.url ? resolveImageUrl(p.images[0].url) : "";
+
+      return url
+        ? `<img src="${url}" alt="Foto do imóvel" loading="lazy" onerror="this.remove()">`
+        : "";
+    }
+
+    function cardHtml(p) {
+      const typeLabel = TYPE_LABEL[p.type] ?? p.type;
+      const purposeLabel = PURPOSE_LABEL[p.property_purpose] ?? p.property_purpose;
+
+      return `
+        <article class="property-card" data-id="${p.id}">
+          <a href="detalhes.html?id=${p.id}">
+            <div class="property-card__photo">
+              ${imageHtml(p)}
+              <span class="property-card__badge">${typeLabel}</span>
+              <span class="property-card__badge property-card__badge--red" style="left:auto;right:14px;">${purposeLabel}</span>
+            </div>
+          </a>
+
+          <div class="property-card__body">
+            <div class="property-card__price">
+              ${fmtPrice(p.price)}
+              ${p.property_purpose === "R" ? "<span style='font-size:.75rem;color:var(--hm-muted)'>/mês</span>" : ""}
+            </div>
+
+            <p class="property-card__address">${p.neighborhood}, ${p.city}</p>
+
+            <div class="property-card__stats">
+              <span>🛏 ${p.rooms?.bedrooms ?? "—"}</span>
+              <span>🚿 ${p.rooms?.bathrooms ?? "—"}</span>
+              <span>📐 ${p.area} m²</span>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
+              <a class="btn btn--ghost btn--small" style="text-align:center;" href="anuncio_form.html?id=${p.id}">Editar</a>
+              <a class="btn btn--ghost btn--small" style="text-align:center;" href="detalhes.html?id=${p.id}">Ver</a>
+              <button class="btn btn--small" style="grid-column:1/-1;background:#fff;color:var(--hm-red);border:1px solid var(--hm-border);box-shadow:none;" data-delete="${p.id}">
+                Excluir
+              </button>
+            </div>
+          </div>
+        </article>`;
+    }
+
+    async function load() {
+      try {
+        const user = await getMe();
+
+        if (user.user_type !== "A") {
+          content.innerHTML = `
+            <div class="alert alert--error">
+              Esta área é exclusiva para anunciantes.
+              <a href="perfil.html">Voltar ao perfil</a>
+            </div>`;
+          return;
+        }
+
+        const items = await getMyProperties();
+
+        if (!items.length) {
+          content.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state__icon">🏠</div>
+              <p class="muted">Você ainda não possui anúncios.</p>
+              <a class="btn" href="anuncio_form.html">Adicionar imóvel</a>
+            </div>`;
+          return;
+        }
+
+        content.innerHTML = `
+          <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px;flex-wrap:wrap;">
+            <strong>${items.length} anúncio${items.length !== 1 ? "s" : ""}</strong>
+            <a class="btn" href="anuncio_form.html">+ Adicionar imóvel</a>
+          </div>
+
+          <div class="property-grid">
+            ${items.map(cardHtml).join("")}
+          </div>`;
+      } catch (err) {
+        if (err.authExpired) {
+          window.location.href = "login.html?next=anunciante.html";
+          return;
+        }
+
+        content.innerHTML = `<div class="alert alert--error">${err.message || "Erro ao carregar anúncios."}</div>`;
+      }
+    }
+
+    content.addEventListener("click", async (event) => {
+      const btn = event.target.closest("[data-delete]");
+      if (!btn) return;
+
+      const id = btn.dataset.delete;
+      if (!confirm("Excluir este anúncio?")) return;
+
+      btn.disabled = true;
+
+      try {
+        await deleteProperty(id);
+        document.querySelector(`[data-id="${id}"]`)?.remove();
+      } catch (err) {
+        alert(err.message || "Não foi possível excluir o anúncio.");
+        btn.disabled = false;
+      }
+    });
+
+    load();
+  </script>
+</body>
+</html>
