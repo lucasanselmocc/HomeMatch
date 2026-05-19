@@ -1,4 +1,4 @@
-from django.db.models import Avg
+from django.db.models import Avg, Count
 
 from apps.properties.models import Condo, Properties, PropertiesPhotos, Reviews, Rooms, RoomsExtras
 from apps.properties.services import delete_from_cloud, upload_to_cloud
@@ -40,7 +40,15 @@ class PropertyRepository:
 
     @staticmethod
     def list_properties_with_order():
-        return Properties.objects.all().order_by("created_at")
+        return (
+            Properties.objects.select_related("rooms", "rooms_extras", "condo", "owner")
+            .prefetch_related("photos", "nearby_places")
+            .annotate(
+                average_rating=Avg("reviews__rating"),
+                favorite_count=Count("favorited_by", distinct=True),
+            )
+            .order_by("created_at")
+        )
 
 
 class PhotoRepository:
