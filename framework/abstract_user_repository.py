@@ -32,9 +32,9 @@ class AbstractUserRepository(ABC):
         """Persiste alterações em um usuário existente."""
         raise NotImplementedError
 
+    @abstractmethod
     def get_by_email(self, email: str) -> Optional[Any]:
         """
         Busca usuário por e-mail.
-        Implementação padrão retorna None; sobrescreva se necessário.
         """
-        return None
+        return NotImplementedError

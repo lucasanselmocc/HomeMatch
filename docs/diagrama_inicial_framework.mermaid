@@ -1,0 +1,75 @@
+flowchart TD
+
+    View["Views / Controllers / API"]
+
+    subgraph UseCases["Use Cases fixos do Framework"]
+        UserUseCases["UserUseCases"]
+        PostUseCases["PostUseCases"]
+        PhotoUseCases["PhotoUseCases"]
+        AttributeUseCases["AttributeUseCases"]
+        AIAnalysisUseCases["AIAnalysisUseCases"]
+        MatchUseCases["MatchScoreUseCases"]
+        SearchUseCases["SearchUseCases"]
+    end
+
+    subgraph Contracts["Contratos abstratos / Pontos flexíveis"]
+        UserRepo["AbstractUserRepository"]
+        PostRepo["AbstractPostRepository"]
+        PhotoRepo["AbstractPhotoRepository"]
+        AttributeStorage["AbstractAttributeStorage"]
+        AIAnalyzer["AbstractAIAnalyzer"]
+        MatchStrategy["AbstractMatchScoreStrategy"]
+        SearchPool["AbstractSearchPool"]
+        AttributeSet["AbstractAttributeSet"]
+    end
+
+    subgraph Infra["Banco / Models / Serviços externos"]
+        UserModel["User Model"]
+        PostModel["Post Model"]
+        PhotoModel["Photo Model"]
+        AttributeModel["Attribute Model"]
+        MatchModel["MatchScore Model"]
+        AIClient["Cliente de IA"]
+        Parser["Parser de atributos"]
+        DB["Banco de dados"]
+    end
+
+    View --> UserUseCases
+    View --> PostUseCases
+    View --> PhotoUseCases
+    View --> AttributeUseCases
+    View --> AIAnalysisUseCases
+    View --> MatchUseCases
+    View --> SearchUseCases
+
+    UserUseCases --> UserRepo
+
+    PostUseCases --> PostRepo
+
+    PhotoUseCases --> PhotoRepo
+
+    AttributeUseCases --> AttributeStorage
+
+    AIAnalysisUseCases --> AIAnalyzer
+    AIAnalysisUseCases --> AttributeStorage
+
+    MatchUseCases --> MatchStrategy
+
+    SearchUseCases --> PostRepo
+    SearchUseCases --> SearchPool
+
+    UserRepo --> UserModel
+    PostRepo --> PostModel
+    PhotoRepo --> PhotoModel
+    AttributeStorage --> AttributeModel
+    MatchStrategy --> MatchModel
+    AIAnalyzer --> AIClient
+    AIAnalyzer --> Parser
+    SearchPool --> AttributeModel
+    AttributeSet --> Parser
+
+    UserModel --> DB
+    PostModel --> DB
+    PhotoModel --> DB
+    AttributeModel --> DB
+    MatchModel --> DB
