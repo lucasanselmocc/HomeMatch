@@ -6,8 +6,103 @@
   <title>HomeMatch | Início</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .icon-svg { display: inline-block; width: 20px; height: 20px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 32px;
+      align-items: center;
+      min-height: 560px;
+    }
+    .hero__actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+    .search-card {
+      margin-top: 24px;
+      background: var(--hm-surface);
+      border: 1px solid var(--hm-border);
+      border-radius: var(--hm-radius);
+      padding: 8px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+    .search-card input {
+      width: 100%;
+      border: 0;
+      outline: none;
+      padding: 0 12px;
+      font-size: 1rem;
+      color: var(--hm-text);
+      font-family: inherit;
+    }
+    .search-card .btn { min-height: 38px; }
+    .mock-window {
+      background: var(--hm-surface);
+      border: 1px solid var(--hm-border);
+      border-radius: var(--hm-radius);
+      overflow: hidden;
+    }
+    .mock-window__top {
+      display: flex;
+      gap: 6px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--hm-border);
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot:nth-child(1) { background: var(--hm-red); }
+    .dot:nth-child(2) { background: #f0c45c; }
+    .dot:nth-child(3) { background: #54b87a; }
+    .property-preview { padding: 16px; }
+    .preview-photo {
+      position: relative;
+      background: #e9ecef;
+      min-height: 200px;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .preview-meta {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-top: 14px;
+    }
+    .price { color: var(--hm-blue); font-size: 1.5rem; font-weight: 900; }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .feature-card {
+      background: var(--hm-surface);
+      border: 1px solid var(--hm-border);
+      border-radius: var(--hm-radius);
+      padding: 20px;
+    }
+    .feature-card__icon {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 12px;
+      border-radius: 4px;
+      background: rgba(216,41,53,0.1);
+      color: var(--hm-red);
+      font-size: 1.2rem;
+      font-weight: 900;
+    }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .grid-3 { grid-template-columns: 1fr; }
+      .search-card { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
   <header class="navbar">
@@ -15,10 +110,17 @@
       <a class="brand" href="index.html" aria-label="HomeMatch">
         <img class="brand-logo" src="assets/homematch-logo.jpeg" alt="HomeMatch">
       </a>
-
-      <nav class="navbar__links">
+      <nav class="navbar__links" id="nav-links">
         <a href="index.html">Início</a>
         <a href="imoveis.html">Imóveis</a>
+        <div class="nav-dropdown" id="user-menu" style="display:none;">
+          <button class="btn btn--small btn--ghost" id="user-dropdown-btn">Minha Conta ▾</button>
+          <div class="dropdown-content">
+            <a href="perfil.html">Perfil</a>
+            <a href="anunciante.html" id="drop-advertiser" style="display:none;">Meus anúncios</a>
+            <a href="#" id="drop-logout">Sair</a>
+          </div>
+        </div>
         <a class="btn btn--small" href="login.html" id="nav-auth-btn">Entrar</a>
       </nav>
     </div>
@@ -28,40 +130,24 @@
     <section class="container hero">
       <div>
         <span class="kicker">Busca imobiliária inteligente</span>
-
         <h1>Encontre imóveis com mais contexto.</h1>
-
-        <p class="lead">
-          O HomeMatch combina filtros objetivos, favoritos, avaliações e análise visual
-          para ajudar você a comparar imóveis com mais clareza.
-        </p>
-
+        <p class="lead">O HomeMatch combina filtros objetivos, favoritos, avaliações e análise visual para ajudar você a comparar imóveis com mais clareza.</p>
         <form class="search-card" id="hero-search">
-          <input
-            id="hero-query"
-            type="text"
-            placeholder="Ex: casa clara, arejada e aconchegante em Natal"
-            autocomplete="off">
-          <button class="btn" type="submit">Buscar</button>
+          <input id="hero-query" type="text" placeholder="Ex: casa clara, arejada e aconchegante em Natal" autocomplete="off">
+          <button class="btn" type="submit">
+            <svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+            Buscar
+          </button>
         </form>
-
         <div class="hero__actions">
           <a class="btn btn--secondary" href="imoveis.html">Ver imóveis</a>
           <a class="btn btn--ghost" href="cadastro.html">Criar conta</a>
         </div>
       </div>
-
       <aside class="mock-window" aria-label="Prévia de imóvel">
-        <div class="mock-window__top">
-          <span class="dot"></span>
-          <span class="dot"></span>
-          <span class="dot"></span>
-        </div>
-
+        <div class="mock-window__top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
         <div class="property-preview" id="home-preview">
-          <div class="loading-state">
-            <div class="spinner"></div><br>Carregando imóvel em destaque…
-          </div>
+          <div class="loading-state"><div class="spinner"></div><br>Carregando imóvel em destaque…</div>
         </div>
       </aside>
     </section>
@@ -70,37 +156,12 @@
       <div class="section-head">
         <span class="kicker">Como funciona</span>
         <h2>Uma busca mais organizada.</h2>
-        <p class="lead">
-          A plataforma combina filtros tradicionais com atributos visuais extraídos
-          das imagens dos imóveis.
-        </p>
+        <p class="lead">A plataforma combina filtros tradicionais com atributos visuais extraídos das imagens dos imóveis.</p>
       </div>
-
       <div class="grid-3">
-        <article class="feature-card">
-          <div class="feature-card__icon">1</div>
-          <h3>Filtre por dados objetivos</h3>
-          <p class="muted">
-            Busque por cidade, bairro, preço, tipo de imóvel, finalidade e quantidade de quartos.
-          </p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-card__icon">2</div>
-          <h3>Compare imóveis reais</h3>
-          <p class="muted">
-            Veja fotos, preço, endereço, cômodos, avaliações e informações do anunciante.
-          </p>
-        </article>
-
-        <article class="feature-card">
-          <div class="feature-card__icon">3</div>
-          <h3>Use análise visual</h3>
-          <p class="muted">
-            Quando disponível, a IA resume atributos como luminosidade, ventilação,
-            aconchego e estilo arquitetônico.
-          </p>
-        </article>
+        <article class="feature-card"><div class="feature-card__icon">1</div><h3>Filtre por dados objetivos</h3><p class="muted">Busque por cidade, bairro, preço, tipo de imóvel, finalidade e quantidade de quartos.</p></article>
+        <article class="feature-card"><div class="feature-card__icon">2</div><h3>Compare imóveis reais</h3><p class="muted">Veja fotos, preço, endereço, cômodos, avaliações e informações do anunciante.</p></article>
+        <article class="feature-card"><div class="feature-card__icon">3</div><h3>Use análise visual</h3><p class="muted">Quando disponível, a IA resume atributos como luminosidade, ventilação, aconchego e estilo arquitetônico.</p></article>
       </div>
     </section>
   </main>
@@ -108,19 +169,14 @@
   <footer class="footer">HomeMatch</footer>
 
   <script type="module">
-    import {
-      getProperties,
-      Auth,
-      fmtPrice,
-      TYPE_LABEL,
-      PURPOSE_LABEL,
-      BASE_URL
-    } from "./assets/api.js";
+    import { getProperties, Auth, getMe, logout, fmtPrice, TYPE_LABEL, PURPOSE_LABEL, BASE_URL } from "./assets/api.js";
 
     if (Auth.isLoggedIn()) {
-      const btn = document.getElementById("nav-auth-btn");
-      btn.textContent = "Minha Conta";
-      btn.href = "perfil.html";
+      document.getElementById("nav-auth-btn").style.display = "none";
+      const menu = document.getElementById("user-menu");
+      menu.style.display = "inline-block";
+      getMe().then(user => { if (user.user_type === "A") document.getElementById("drop-advertiser").style.display = "block"; }).catch(() => {});
+      document.getElementById("drop-logout").addEventListener("click", async (e) => { e.preventDefault(); await logout(); window.location.href = "index.html"; });
     }
 
     function resolveImageUrl(url) {
@@ -135,94 +191,41 @@
       const purposeLabel = PURPOSE_LABEL[p.property_purpose] ?? p.property_purpose;
       const beds = p.rooms?.bedrooms ?? "—";
       const baths = p.rooms?.bathrooms ?? "—";
-
-      const photoHtml = imgSrc
-        ? `<img src="${imgSrc}" alt="Foto do imóvel em destaque" loading="eager" onerror="this.remove()">`
-        : "";
-
       return `
         <article class="property-card" style="box-shadow:none;border:0;">
           <a href="detalhes.html?id=${p.id}">
-            <div class="property-card__photo" style="height:290px;border-radius:24px;">
-              ${photoHtml}
+            <div class="property-card__photo" style="height:260px;border-radius:4px;background:#e9ecef;">
+              ${imgSrc ? `<img src="${imgSrc}" alt="Foto do imóvel em destaque" loading="eager" onerror="this.remove()">` : ""}
               <span class="property-card__badge">${typeLabel}</span>
-              <span class="property-card__badge property-card__badge--red" style="left:auto;right:14px;">
-                ${purposeLabel}
-              </span>
+              <span class="property-card__badge property-card__badge--red" style="left:auto;right:14px;">${purposeLabel}</span>
             </div>
           </a>
-
-          <div class="property-card__body" style="padding:20px 0 0;">
-            <div class="property-card__price">
-              ${fmtPrice(p.price)}
-              <span style="font-size:.75rem;font-weight:600;color:var(--hm-muted)">
-                ${p.property_purpose === "R" ? "/mês" : ""}
-              </span>
-            </div>
-
+          <div class="property-card__body" style="padding:16px 0 0;">
+            <div class="property-card__price">${fmtPrice(p.price)}<small style="font-size:.75rem;font-weight:600;color:var(--hm-muted)">${p.property_purpose === "R" ? "/mês" : ""}</small></div>
             <p class="property-card__address">${p.neighborhood}, ${p.city}</p>
-
-            <div class="property-card__stats">
-              <span>🛏 ${beds} quarto${beds !== 1 ? "s" : ""}</span>
-              <span>🚿 ${baths} banheiro${baths !== 1 ? "s" : ""}</span>
-              <span>📐 ${p.area} m²</span>
-            </div>
-
-            <a
-              class="btn btn--ghost btn--small"
-              style="margin-top:14px;width:100%;text-align:center;"
-              href="detalhes.html?id=${p.id}">
-              Ver detalhes
-            </a>
+            <div class="property-card__stats"><span>🛏 ${beds}</span><span>🚿 ${baths}</span><span>📐 ${p.area}m²</span></div>
+            <a class="btn btn--ghost btn--small" style="margin-top:12px;width:100%;text-align:center;" href="detalhes.html?id=${p.id}">Ver detalhes</a>
           </div>
         </article>`;
     }
 
     function renderFallbackPreview() {
-      return `
-        <div class="preview-photo"></div>
-
-        <div class="preview-meta">
-          <div>
-            <strong class="price">Imóveis em Natal</strong>
-            <p class="muted" style="margin-bottom:0;">
-              Cadastre imóveis, envie fotos e compare opções com mais contexto.
-            </p>
-          </div>
-          <a class="btn btn--small" href="imoveis.html">Explorar</a>
-        </div>`;
+      return `<div class="preview-photo"></div><div class="preview-meta"><div><strong class="price">Imóveis em Natal</strong><p class="muted" style="margin-bottom:0;">Cadastre imóveis, envie fotos e compare opções com mais contexto.</p></div><a class="btn btn--small" href="imoveis.html">Explorar</a></div>`;
     }
 
     async function loadHomePreview() {
       const preview = document.getElementById("home-preview");
-
       try {
         const data = await getProperties();
         const items = Array.isArray(data) ? data : (data.results ?? []);
-
-        if (!items.length) {
-          preview.innerHTML = renderFallbackPreview();
-          return;
-        }
-
-        preview.innerHTML = renderPreview(items[0]);
-      } catch (err) {
-        preview.innerHTML = renderFallbackPreview();
-        console.error(err);
-      }
+        preview.innerHTML = items.length ? renderPreview(items[0]) : renderFallbackPreview();
+      } catch { preview.innerHTML = renderFallbackPreview(); }
     }
 
     document.getElementById("hero-search").addEventListener("submit", (e) => {
       e.preventDefault();
-
       const query = document.getElementById("hero-query").value.trim();
-
-      if (!query) {
-        window.location.href = "imoveis.html";
-        return;
-      }
-
-      window.location.href = `imoveis.html?q=${encodeURIComponent(query)}`;
+      window.location.href = query ? `imoveis.html?q=${encodeURIComponent(query)}` : "imoveis.html";
     });
 
     loadHomePreview();

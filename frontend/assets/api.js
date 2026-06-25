@@ -1,5 +1,5 @@
 /**
- * HomeMatch Frontend — API Client
+ * HomeMatch Frontend API Client
  */
 
 export const BASE_URL = "http://localhost:8000";
@@ -121,7 +121,49 @@ export function resolveImageUrl(url) {
   return `${BASE_URL}/${url}`;
 }
 
-// Auth
+// -------------------- Cookies --------------------
+export function setCookie(name, value, days = 30) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+}
+
+export function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
+export function deleteCookie(name) {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+}
+
+// -------------------- SessionStorage (filtros) --------------------
+export function saveFilters(filters) {
+  sessionStorage.setItem('hm_filters', JSON.stringify(filters));
+}
+
+export function getSavedFilters() {
+  const data = sessionStorage.getItem('hm_filters');
+  return data ? JSON.parse(data) : null;
+}
+
+export function clearSavedFilters() {
+  sessionStorage.removeItem('hm_filters');
+}
+
+// -------------------- Recentemente vistos --------------------
+export function addRecentlyViewed(propertyId) {
+  let viewed = JSON.parse(sessionStorage.getItem('hm_recent') || '[]');
+  viewed = viewed.filter(id => id !== propertyId);
+  viewed.unshift(propertyId);
+  if (viewed.length > 10) viewed.pop();
+  sessionStorage.setItem('hm_recent', JSON.stringify(viewed));
+}
+
+export function getRecentlyViewed() {
+  return JSON.parse(sessionStorage.getItem('hm_recent') || '[]');
+}
+
+// -------------------- Auth --------------------
 export async function login(email, password) {
   const data = await req("/api/users/login/", {
     method: "POST",
@@ -165,7 +207,7 @@ export async function updateMe(data) {
   });
 }
 
-// Properties
+// -------------------- Properties --------------------
 export async function getProperties(params = {}) {
   const qs = queryString(params);
   return req(`/api/properties/${qs ? "?" + qs : ""}`);
@@ -229,7 +271,7 @@ export async function getMyProperties() {
   });
 }
 
-// Search
+// -------------------- Search --------------------
 export async function searchProperties(params = {}) {
   const qs = queryString(params);
   return req(`/api/search/properties/${qs ? "?" + qs : ""}`);
@@ -242,7 +284,7 @@ export async function naturalSearch(query) {
   });
 }
 
-// Favorites
+// -------------------- Favorites --------------------
 export async function getFavorites() {
   return req("/api/users/favorites/", { auth: true });
 }
@@ -263,7 +305,7 @@ export async function removeFavorite(property_id) {
   });
 }
 
-// Reviews
+// -------------------- Reviews --------------------
 export async function getReviews(property_id) {
   return req(`/api/properties/${property_id}/reviews/`);
 }
@@ -276,7 +318,7 @@ export async function createReview(property_id, rating, comment) {
   });
 }
 
-// Formatting
+// -------------------- Formatting --------------------
 export function fmtPrice(value) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",

@@ -6,126 +6,81 @@
   <title>HomeMatch | Minha Conta</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .icon-svg { display: inline-block; width: 18px; height: 18px; flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .profile-layout { display: grid; grid-template-columns: 280px 1fr; gap: 24px; align-items: start; padding-top: 40px; }
+    .profile-card { background: var(--hm-surface); border: 1px solid var(--hm-border); border-radius: var(--hm-radius); padding: 24px; text-align: center; box-shadow: var(--hm-shadow); }
+    .profile-card__avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--hm-blue); color: #fff; font-size: 1.8rem; font-weight: 900; display: grid; place-items: center; margin: 0 auto 14px; }
+    .profile-card__name { font-size: 1.1rem; font-weight: 800; color: var(--hm-blue); }
+    .profile-card__email { color: var(--hm-muted); font-size: .85rem; margin-bottom: 6px; }
+    .badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 4px; padding: 4px 10px; font-weight: 800; font-size: .75rem; }
+    .badge--blue { background: rgba(23,54,87,0.1); color: var(--hm-blue); }
+    .profile-nav { margin-top: 16px; display: grid; gap: 6px; }
+    .profile-nav a { padding: 10px 14px; border-radius: 4px; font-weight: 700; font-size: .85rem; color: var(--hm-blue); transition: background .15s; display: flex; align-items: center; gap: 8px; }
+    .profile-nav a:hover, .profile-nav a.active { background: rgba(23,54,87,0.07); }
+    .profile-section-title { font-size: 1.3rem; font-weight: 800; color: var(--hm-blue); margin-bottom: 16px; letter-spacing: -.03em; }
+    .field { display: grid; gap: 6px; margin-bottom: 14px; }
+    .field label { color: var(--hm-blue); font-weight: 800; font-size: .85rem; }
+    .field input, .field select { width: 100%; min-height: 40px; border: 1px solid var(--hm-border); border-radius: 4px; padding: 8px 12px; font: inherit; background: var(--hm-surface); }
+    .field input:focus, .field select:focus { outline: 2px solid var(--hm-blue); outline-offset: 1px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .property-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 20px; margin-top: 14px; }
+    @media (max-width: 900px) { .profile-layout { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-  <header class="navbar">
-    <div class="navbar__inner">
-      <a class="brand" href="index.html" aria-label="HomeMatch">
-        <img class="brand-logo" src="assets/homematch-logo.jpeg" alt="HomeMatch">
-      </a>
-      <nav class="navbar__links">
-        <a href="index.html">Início</a>
-        <a href="imoveis.html">Imóveis</a>
-        <a id="nav-advertiser" href="anunciante.html" style="display:none;">Meus anúncios</a>
-        <a class="btn btn--small btn--ghost" id="btn-logout">Sair</a>
-      </nav>
-    </div>
-  </header>
+  <header class="navbar"><div class="navbar__inner">
+    <a class="brand" href="index.html" aria-label="HomeMatch"><img class="brand-logo" src="assets/homematch-logo.jpeg" alt="HomeMatch"></a>
+    <nav class="navbar__links" id="nav-links">
+      <a href="index.html">Início</a>
+      <a href="imoveis.html">Imóveis</a>
+      <div class="nav-dropdown" id="user-menu" style="display:none;">
+        <button class="btn btn--small btn--ghost" id="user-dropdown-btn">Minha Conta ▾</button>
+        <div class="dropdown-content">
+          <a href="perfil.html">Perfil</a>
+          <a href="anunciante.html" id="drop-advertiser" style="display:none;">Meus anúncios</a>
+          <a href="#" id="drop-logout">Sair</a>
+        </div>
+      </div>
+      <a class="btn btn--small" href="login.html" id="nav-auth-btn">Entrar</a>
+    </nav>
+  </div></header>
 
   <main class="container">
-    <div id="main-content">
-      <div class="loading-state"><div class="spinner"></div><br>Carregando perfil…</div>
-    </div>
+    <div id="main-content"><div class="loading-state"><div class="spinner"></div><br>Carregando perfil…</div></div>
   </main>
 
   <footer class="footer">HomeMatch</footer>
 
   <script type="module">
-    import {
-      Auth, logout, getMe, updateMe, getFavorites, removeFavorite,
-      fmtPrice, TYPE_LABEL, PURPOSE_LABEL, BASE_URL
-    } from "./assets/api.js";
-
-    if (!Auth.isLoggedIn()) {
-      window.location.href = "login.html?next=perfil.html";
-      throw new Error("Not logged in");
-    }
-
-    document.getElementById("btn-logout").addEventListener("click", async () => {
-      await logout();
-      window.location.href = "index.html";
-    });
-
+    import { Auth, logout, getMe, updateMe, getFavorites, removeFavorite, fmtPrice, TYPE_LABEL, PURPOSE_LABEL, BASE_URL, getRecentlyViewed, getProperties } from "./assets/api.js";
+    if (!Auth.isLoggedIn()) { window.location.href = "login.html?next=perfil.html"; throw new Error("Not logged in"); }
+    document.getElementById("nav-auth-btn").style.display = "none"; const menu = document.getElementById("user-menu"); menu.style.display = "inline-block";
+    getMe().then(user => { if (user.user_type === "A") document.getElementById("drop-advertiser").style.display = "block"; }).catch(() => {});
+    document.getElementById("drop-logout").addEventListener("click", async (e) => { e.preventDefault(); await logout(); window.location.href = "index.html"; });
     const main = document.getElementById("main-content");
-
     const USER_TYPE_LABEL = { S: "Buscador", A: "Anunciante" };
-
-    const GENDER_OPTIONS = [
-      { value: "", label: "Prefiro não informar" },
-      { value: "F", label: "Feminino" },
-      { value: "M", label: "Masculino" },
-      { value: "NB", label: "Não binário" },
-      { value: "O", label: "Outro" },
-    ];
-
-    function avatarInitial(name) {
-      return (name ?? "U")[0].toUpperCase();
-    }
-
-    function resolveImageUrl(url) {
-      if (!url) return "";
-      if (url.startsWith("http://") || url.startsWith("https://")) return url;
-      if (url.startsWith("/")) return `${BASE_URL}${url}`;
-      return `${BASE_URL}/${url}`;
-    }
-
-    function genderOptionsHtml(current) {
-      return GENDER_OPTIONS.map((option) => `
-        <option value="${option.value}" ${option.value === (current ?? "") ? "selected" : ""}>
-          ${option.label}
-        </option>
-      `).join("");
-    }
-
+    const GENDER_OPTIONS = [{ value: "", label: "Prefiro não informar" }, { value: "F", label: "Feminino" }, { value: "M", label: "Masculino" }, { value: "NB", label: "Não binário" }, { value: "O", label: "Outro" }];
+    function avatarInitial(name) { return (name ?? "U")[0].toUpperCase(); }
+    function resolveImageUrl(url) { if (!url) return ""; if (url.startsWith("http://") || url.startsWith("https://")) return url; if (url.startsWith("/")) return `${BASE_URL}${url}`; return `${BASE_URL}/${url}`; }
+    function genderOptionsHtml(current) { return GENDER_OPTIONS.map(o => `<option value="${o.value}" ${o.value === (current ?? "") ? "selected" : ""}>${o.label}</option>`).join(""); }
     function renderFavCard(p) {
-      const typeLabel = TYPE_LABEL[p.type] ?? p.type;
-      const purposeLabel = PURPOSE_LABEL[p.property_purpose] ?? p.property_purpose;
+      const typeLabel = TYPE_LABEL[p.type] ?? p.type, purposeLabel = PURPOSE_LABEL[p.property_purpose] ?? p.property_purpose;
       const imgSrc = p.images?.[0]?.url ? resolveImageUrl(p.images[0].url) : "";
-
-      return `
-        <article class="property-card" data-id="${p.id}">
-          <a href="detalhes.html?id=${p.id}">
-            <div class="property-card__photo">
-              ${imgSrc ? `<img src="${imgSrc}" alt="Foto" loading="lazy" onerror="this.remove()">` : ""}
-              <span class="property-card__badge">${typeLabel}</span>
-              <span class="property-card__badge property-card__badge--red" style="left:auto;right:14px;">${purposeLabel}</span>
-            </div>
-          </a>
-
-          <div class="property-card__body">
-            <div class="property-card__price">
-              ${fmtPrice(p.price)}
-              ${p.property_purpose === "R" ? "<span style='font-size:.75rem;color:var(--hm-muted)'>/mês</span>" : ""}
-            </div>
-            <p class="property-card__address">${p.neighborhood}, ${p.city}</p>
-            <div style="display:flex;gap:8px;margin-top:14px;">
-              <a class="btn btn--ghost btn--small" style="flex:1;text-align:center;" href="detalhes.html?id=${p.id}">Ver</a>
-              <button class="btn btn--small" style="background:#fff;color:var(--hm-red);border:1px solid var(--hm-border);box-shadow:none;" data-remove-fav="${p.id}">Remover</button>
-            </div>
-          </div>
-        </article>`;
+      return `<article class="property-card" data-id="${p.id}"><a href="detalhes.html?id=${p.id}"><div class="property-card__photo">${imgSrc ? `<img src="${imgSrc}" alt="Foto" loading="lazy" onerror="this.remove()">` : ""}<span class="property-card__badge">${typeLabel}</span><span class="property-card__badge property-card__badge--red" style="left:auto;right:14px;">${purposeLabel}</span></div></a><div class="property-card__body"><div class="property-card__price">${fmtPrice(p.price)}${p.property_purpose === "R" ? "<span style='font-size:.75rem;color:var(--hm-muted)'>/mês</span>" : ""}</div><p class="property-card__address">${p.neighborhood}, ${p.city}</p><div style="display:flex;gap:6px;margin-top:12px;"><a class="btn btn--ghost btn--small" style="flex:1;text-align:center;" href="detalhes.html?id=${p.id}">Ver</a><button class="btn btn--small" style="background:#fff;color:var(--hm-red);border:1px solid var(--hm-border);" data-remove-fav="${p.id}">Remover</button></div></div></article>`;
     }
-
     async function render() {
       let user, favs;
-
-      try {
-        [user, favs] = await Promise.all([getMe(), getFavorites()]);
-      } catch {
-        main.innerHTML = `<div class="alert alert--error">Sessão expirada. <a href="login.html">Faça login novamente</a></div>`;
-        Auth.clear();
-        return;
-      }
-
-      if (user.user_type === "A") {
-        document.getElementById("nav-advertiser").style.display = "";
-      }
-
+      try { [user, favs] = await Promise.all([getMe(), getFavorites()]); }
+      catch { main.innerHTML = `<div class="alert alert--error">Sessão expirada. <a href="login.html">Faça login novamente</a></div>`; Auth.clear(); return; }
+      if (user.user_type === "A") document.getElementById("drop-advertiser").style.display = "";
       const favItems = Array.isArray(favs) ? favs : (favs?.results ?? []);
       const userTypeBadge = USER_TYPE_LABEL[user.user_type] ?? user.user_type;
-
+      const recentIds = getRecentlyViewed();
+      let recentItems = [];
+      if (recentIds.length) { try { const allProps = await getProperties(); const items = Array.isArray(allProps) ? allProps : (allProps.results ?? []); recentItems = items.filter(p => recentIds.includes(p.id)); } catch {} }
       main.innerHTML = `
         <div class="profile-layout">
           <aside>
@@ -133,98 +88,46 @@
               <div class="profile-card__avatar">${avatarInitial(user.name)}</div>
               <div class="profile-card__name">${user.name}</div>
               <div class="profile-card__email">${user.email}</div>
-              <span class="badge badge--blue" style="margin-top:8px;">${userTypeBadge}</span>
+              <span class="badge badge--blue" style="margin-top:6px;">${userTypeBadge}</span>
               <nav class="profile-nav">
-                <a href="#favoritos" class="active">♥ Favoritos (${favItems.length})</a>
+                <a href="#favoritos"><svg class="icon-svg icon-svg--fill" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg> Favoritos (${favItems.length})</a>
                 ${user.user_type === "A" ? `<a href="anunciante.html">🏘️ Meus anúncios</a>` : ""}
-                <a href="#dados">✎ Meus dados</a>
+                <a href="#recent"><svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Vistos recentemente (${recentItems.length})</a>
+                <a href="#dados"><svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Meus dados</a>
               </nav>
             </div>
           </aside>
-
           <div class="profile-content">
-            <section id="favoritos">
-              <h2 class="profile-section-title">Meus favoritos</h2>
-              ${favItems.length
-                ? `<div class="property-grid">${favItems.map(renderFavCard).join("")}</div>`
-                : `<div class="empty-state"><div class="empty-state__icon">🏠</div><p class="muted">Você ainda não favoritou nenhum imóvel.<br><a href="imoveis.html">Explorar imóveis →</a></p></div>`}
-            </section>
-
-            <section id="dados" style="margin-top:48px;">
+            <section id="favoritos"><h2 class="profile-section-title">Meus favoritos</h2>${favItems.length ? `<div class="property-grid">${favItems.map(renderFavCard).join("")}</div>` : `<div class="empty-state"><div class="empty-state__icon">🏠</div><p class="muted">Você ainda não favoritou nenhum imóvel.<br><a href="imoveis.html">Explorar imóveis →</a></p></div>`}</section>
+            <section id="recent" style="margin-top:40px;"><h2 class="profile-section-title">Vistos recentemente</h2>${recentItems.length ? `<div class="property-grid">${recentItems.map(renderFavCard).join("")}</div>` : `<p class="muted">Nenhum imóvel visitado recentemente.</p>`}</section>
+            <section id="dados" style="margin-top:40px;">
               <h2 class="profile-section-title">Meus dados</h2>
               <div id="profile-alert"></div>
-
               <form id="form-profile" style="max-width:480px;">
-                <div class="field">
-                  <label for="p-name">Nome</label>
-                  <input id="p-name" type="text" value="${user.name ?? ""}" required>
-                </div>
-
-                <div class="field-row">
-                  <div class="field">
-                    <label for="p-age">Idade</label>
-                    <input id="p-age" type="number" value="${user.age ?? ""}" min="1" max="120">
-                  </div>
-
-                  <div class="field">
-                    <label for="p-gender">Gênero</label>
-                    <select id="p-gender">
-                      ${genderOptionsHtml(user.gender)}
-                    </select>
-                  </div>
-                </div>
-
-                <div class="field">
-                  <label>E-mail</label>
-                  <input type="email" value="${user.email}" disabled style="background:#f4f4f4;">
-                </div>
-
-                <button type="submit" class="btn" id="btn-save">Salvar alterações</button>
+                <div class="field"><label for="p-name">Nome</label><input id="p-name" type="text" value="${user.name ?? ""}" required></div>
+                <div class="field-row"><div class="field"><label for="p-age">Idade</label><input id="p-age" type="number" value="${user.age ?? ""}" min="1" max="120"></div><div class="field"><label for="p-gender">Gênero</label><select id="p-gender">${genderOptionsHtml(user.gender)}</select></div></div>
+                <div class="field"><label>E-mail</label><input type="email" value="${user.email}" disabled style="background:#f4f4f4;"></div>
+                <button type="submit" class="btn" id="btn-save"><svg class="icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar alterações</button>
               </form>
             </section>
           </div>
         </div>`;
-
       document.querySelectorAll("[data-remove-fav]").forEach((btn) => {
         btn.addEventListener("click", async () => {
-          const id = +btn.dataset.removeFav;
-          btn.disabled = true;
-
-          try {
-            await removeFavorite(id);
-            btn.closest(".property-card").remove();
-          } catch (err) {
-            alert(err.message || "Não foi possível remover favorito.");
-            btn.disabled = false;
-          }
+          const id = +btn.dataset.removeFav; btn.disabled = true;
+          try { await removeFavorite(id); btn.closest(".property-card").remove(); }
+          catch (err) { alert(err.message || "Não foi possível remover favorito."); btn.disabled = false; }
         });
       });
-
       document.getElementById("form-profile").addEventListener("submit", async (event) => {
         event.preventDefault();
-
-        const alertEl = document.getElementById("profile-alert");
-        const saveBtn = document.getElementById("btn-save");
-
-        alertEl.innerHTML = "";
-        saveBtn.disabled = true;
-
-        try {
-          await updateMe({
-            name: document.getElementById("p-name").value.trim(),
-            age: document.getElementById("p-age").value || null,
-            gender: document.getElementById("p-gender").value || null,
-          });
-
-          alertEl.innerHTML = `<div class="alert alert--success">Perfil atualizado!</div>`;
-        } catch (err) {
-          alertEl.innerHTML = `<div class="alert alert--error">${err.message}</div>`;
-        }
-
+        const alertEl = document.getElementById("profile-alert"), saveBtn = document.getElementById("btn-save");
+        alertEl.innerHTML = ""; saveBtn.disabled = true;
+        try { await updateMe({ name: document.getElementById("p-name").value.trim(), age: document.getElementById("p-age").value || null, gender: document.getElementById("p-gender").value || null }); alertEl.innerHTML = `<div class="alert alert--success">Perfil atualizado!</div>`; }
+        catch (err) { alertEl.innerHTML = `<div class="alert alert--error">${err.message}</div>`; }
         saveBtn.disabled = false;
       });
     }
-
     render();
   </script>
 </body>
