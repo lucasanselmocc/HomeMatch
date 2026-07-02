@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase, override_settings
 
-from apps.ai_analysis.services import AiAnalysisService
+from apps.ai_analysis.strategy import AiAnalysisService
 from apps.properties.models import Condo, Properties, PropertiesPhotos, Rooms, RoomsExtras
 from apps.ai_analysis.models import PhotoSubjectiveAttribute, PropertySubjectiveAttribute
 

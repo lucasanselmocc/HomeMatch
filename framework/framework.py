@@ -120,12 +120,12 @@ class HomeMatchFramework:
         """
         return AnalyzerService(
             analyze_photo_use_case=AnalyzePhotoUseCase(
-                self.attribute_storage,
                 self.ai_analyzer,
+                self.attribute_storage,
             ),
             analyze_post_use_case=AnalyzePostUseCase(
-                self.attribute_storage,
                 self.ai_analyzer,
+                self.attribute_storage,
             ),
         )
 

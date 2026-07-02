@@ -52,3 +52,11 @@ class AbstractPostRepository(ABC):
         Remove ou desativa uma postagem existente.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def filter_posts(self, criteria: dict) -> list[Any]:
+        """
+        Retorna as postagens que atendem aos filtros estruturados.
+        """ 
+
+        raise NotImplementedError
