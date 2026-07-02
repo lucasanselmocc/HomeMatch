@@ -14,7 +14,7 @@ from typing import Any, Dict, List
 
 from apps.ai_analysis.models import PropertySubjectiveAttribute
 from apps.ai_analysis.repositories import SubjectiveAttributeRepository
-from framework.abstract_attribute_storage import AbstractAttributeStorage
+from framework.abstractions.abstract_attribute_storage import AbstractAttributeStorage
 
 
 class RealEstateAttributeStorage(AbstractAttributeStorage):

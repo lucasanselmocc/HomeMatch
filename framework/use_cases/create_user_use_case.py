@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from framework.abstract_user_repository import AbstractUserRepository
+from framework.abstractions.abstract_user_repository import AbstractUserRepository
 
 
 class CreateUserUseCase:

@@ -16,7 +16,7 @@ from __future__ import annotations
 from typing import Any, List, Tuple
 
 from apps.ai_analysis.models import PropertySubjectiveAttribute
-from framework.abstract_match_score_strategy import AbstractMatchScoreStrategy
+from framework.abstractions.abstract_match_score_strategy import AbstractMatchScoreStrategy
 
 
 class RealEstateMatchScoreStrategy(AbstractMatchScoreStrategy):

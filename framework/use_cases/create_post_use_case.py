@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from framework.abstract_post_repository import AbstractPostRepository
+from framework.abstractions.abstract_post_repository import AbstractPostRepository
 
 
 class CreatePostUseCase:

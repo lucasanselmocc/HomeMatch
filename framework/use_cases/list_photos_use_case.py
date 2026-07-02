@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from typing import Any, List
 
-from framework.abstract_photo_repository import AbstractPhotoRepository
+from framework.abstractions.abstract_photo_repository import AbstractPhotoRepository
 
 
 class ListPostPhotosUseCase:

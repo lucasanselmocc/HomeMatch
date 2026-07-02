@@ -21,7 +21,7 @@ from apps.ai_analysis.client import AiVisionClient
 from apps.ai_analysis.exceptions import AiAnalysisError
 from apps.ai_analysis.parser import AiAttributeParser
 from apps.ai_analysis.repositories import SubjectiveAttributeRepository
-from framework.abstract_ai_analyzer import AbstractAIAnalyzer
+from framework.abstractions.abstract_ai_analyzer import AbstractAIAnalyzer
 
 
 class RealEstateAIAnalyzer(AbstractAIAnalyzer):

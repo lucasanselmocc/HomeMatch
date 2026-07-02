@@ -19,8 +19,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from framework.abstract_ai_analyzer import AbstractAIAnalyzer
-from framework.abstract_attribute_storage import AbstractAttributeStorage
+from framework.abstractions.abstract_ai_analyzer import AbstractAIAnalyzer
+from framework.abstractions.abstract_attribute_storage import AbstractAttributeStorage
 
 
 class AnalyzePhotoUseCase:
