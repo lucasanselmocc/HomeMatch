@@ -37,4 +37,18 @@ class AbstractUserRepository(ABC):
         """
         Busca usuário por e-mail.
         """
-        return NotImplementedError
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete_user(self, user: Any) -> None:
+        """
+        Remove um usuário existente.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def list_users(self) -> list[Any]:
+        """
+        Lista todos os usuários cadastrados.
+        """
+        raise NotImplementedError
