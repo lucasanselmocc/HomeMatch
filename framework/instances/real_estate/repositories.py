@@ -21,6 +21,7 @@ from apps.properties.repositories import PropertyRepository
 from apps.users.repositories import UserRepository as _DjangoUserRepo
 from framework.abstractions.abstract_post_repository import AbstractPostRepository
 from framework.abstractions.abstract_photo_repository import AbstractPhotoRepository
+from framework.abstractions.abstract_user_repository import AbstractUserRepository
 
 
 class _DemoImageFile(io.BytesIO):
@@ -32,7 +33,6 @@ class _DemoImageFile(io.BytesIO):
     def chunks(self):
         self.seek(0)
         yield self.read()
-from framework.abstractions.abstract_user_repository import AbstractUserRepository
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -70,12 +70,6 @@ class RealEstateUserRepository(AbstractUserRepository):
 
     def list_users(self) -> list[Any]:
         return self._repository.list_users()
-
-    def delete_user(self, user: Any) -> None:
-        return _DjangoUserRepo.delete_user(user)
-
-    def list_users(self) -> list[Any]:
-        return _DjangoUserRepo.list_users()
 
 
 # ─────────────────────────────────────────────────────────────────────────────

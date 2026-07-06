@@ -38,14 +38,37 @@ class HomeMatchMatchScoreStrategy(AbstractMatchScoreStrategy):
 
     def calculate(
         self,
+        user: Any,
+        posts: list[Any],
+        query_params: dict | None = None,
+    ) -> list[tuple[Any, int]]:
+        """
+        Calcula o match-score entre um usuário e uma lista de imóveis.
+
+        Esta assinatura segue o contrato de ``AbstractMatchScoreStrategy``.
+        A view imobiliária continua podendo usar ``rank()`` para receber os
+        imóveis já ordenados e anotados com ``match_score``.
+        """
+        return [
+            (
+                post,
+                self.calculate_for_property(
+                    target=post,
+                    user=user,
+                    query_params=query_params,
+                ),
+            )
+            for post in posts
+        ]
+
+    def calculate_for_property(
+        self,
         *,
         target: Any,
         user: Any,
         query_params: dict | None = None,
     ) -> int:
-        """
-        Calcula o match-score entre um usuário e um imóvel.
-        """
+        """Calcula o match-score individual entre um usuário e um imóvel."""
         try:
             preferences = user.preferences
         except ObjectDoesNotExist:
@@ -69,17 +92,24 @@ class HomeMatchMatchScoreStrategy(AbstractMatchScoreStrategy):
         user: Any,
         query_params: dict | None = None,
     ) -> list[Any]:
-        """
-        Calcula o match-score de uma lista de imóveis e ordena pelo maior score.
-        """
-        for target in targets:
-            target.match_score = self.calculate(
-                target=target,
-                user=user,
-                query_params=query_params,
-            )
+        """Calcula e ordena uma lista de imóveis pelo maior score."""
+        scores = self.calculate(
+            user=user,
+            posts=targets,
+            query_params=query_params,
+        )
 
-        return sorted(targets, key=lambda item: item.match_score, reverse=True)
+        for target, score in scores:
+            target.match_score = score
+
+        return [
+            target
+            for target, _ in sorted(
+                scores,
+                key=lambda item: item[1],
+                reverse=True,
+            )
+        ]
 
     def _calculate_match_score(
         self,
