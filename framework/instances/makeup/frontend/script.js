@@ -1,82 +1,119 @@
-let currentUser = null;
+const profileForm = document.getElementById("profile-form");
+const searchForm = document.getElementById("search-form");
+const heroSearch = document.getElementById("hero-search");
+const statusBox = document.getElementById("profile-status");
+const resultsBox = document.getElementById("results");
 
-function showTab(tabId) {
-  document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
-  document.querySelectorAll(".tabs button").forEach(btn => btn.classList.remove("active"));
-
-  document.getElementById(tabId).classList.add("active");
-  event.target.classList.add("active");
-}
-
-function setQuery(text) {
-  document.getElementById("query").value = text;
-}
-
-async function createUser() {
-  const response = await fetch("/user", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email: document.getElementById("email").value,
-      name: document.getElementById("name").value,
-      skin_type: document.getElementById("skinType").value,
-      preferred_finish: document.getElementById("finish").value,
-      max_price: Number(document.getElementById("maxPrice").value),
-    }),
+async function request(path, options = {}) {
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
   });
 
-  currentUser = await response.json();
+  const data = await response.json().catch(() => null);
 
-  document.getElementById("profileResult").innerHTML = `
-    <div class="product">
-      <h3>Perfil criado</h3>
-      <p><strong>Nome:</strong> ${currentUser.name}</p>
-      <p><strong>Tipo de pele:</strong> ${currentUser.skin_type}</p>
-      <p><strong>Acabamento preferido:</strong> ${currentUser.preferred_finish}</p>
-      <p><strong>Preço máximo:</strong> R$ ${currentUser.max_price}</p>
-    </div>
-  `;
+  if (!response.ok) {
+    const message = data?.detail || data?.message || `Erro HTTP ${response.status}`;
+    throw new Error(typeof message === "string" ? message : JSON.stringify(message));
+  }
 
-  showTab("search");
+  return data;
 }
 
-async function searchProducts() {
-  const response = await fetch("/search", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      query: document.getElementById("query").value,
-    }),
-  });
+function profilePayload() {
+  return {
+    email: document.getElementById("email").value.trim(),
+    name: document.getElementById("name").value.trim(),
+    skin_type: document.getElementById("skinType").value.trim(),
+    preferred_finish: document.getElementById("finish").value.trim(),
+    max_price: Number(document.getElementById("maxPrice").value),
+  };
+}
 
-  const products = await response.json();
-  const results = document.getElementById("results");
+profileForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  statusBox.innerHTML = `<p class="muted">Salvando perfil...</p>`;
 
-  results.innerHTML = "";
+  try {
+    const user = await request("/user", {
+      method: "POST",
+      body: JSON.stringify(profilePayload()),
+    });
 
-  products.forEach((item) => {
-    const div = document.createElement("div");
-    div.className = "product";
-
-    div.innerHTML = `
-      <h3>${item.name}</h3>
-      <p><strong>Marca:</strong> ${item.brand}</p>
-      <p><strong>Categoria:</strong> ${item.category}</p>
-      <p>${item.description}</p>
-      <p><strong>Tipo de pele:</strong> ${item.skin_type}</p>
-      <p><strong>Acabamento:</strong> ${item.finish}</p>
-      <p><strong>Cor:</strong> ${item.color}</p>
-      <p><strong>Preço:</strong> R$ ${item.price}</p>
-      <p class="score">Score de busca: ${item.search_score}</p>
-      <p class="score">Match-score: ${
-        item.match_score === null ? "crie um perfil primeiro" : item.match_score
-      }</p>
+    statusBox.innerHTML = `
+      <p class="success">Perfil criado/atualizado com sucesso.</p>
+      <p><strong>${user.name}</strong> — pele ${user.skin_type}, acabamento ${user.preferred_finish}, até R$ ${user.max_price}</p>
     `;
 
-    results.appendChild(div);
-  });
+    document.getElementById("busca").scrollIntoView({ behavior: "smooth" });
+  } catch (error) {
+    statusBox.innerHTML = `<p class="error">${error.message}</p>`;
+  }
+});
+
+function setQuery(value) {
+  document.getElementById("query").value = value;
+}
+
+document.querySelectorAll("[data-query]").forEach((button) => {
+  button.addEventListener("click", () => setQuery(button.dataset.query));
+});
+
+heroSearch.addEventListener("submit", (event) => {
+  event.preventDefault();
+  document.getElementById("query").value = document.getElementById("hero-query").value;
+  document.getElementById("busca").scrollIntoView({ behavior: "smooth" });
+  searchProducts();
+});
+
+searchForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  searchProducts();
+});
+
+async function searchProducts() {
+  const query = document.getElementById("query").value.trim();
+  if (!query) return;
+
+  resultsBox.innerHTML = `<div class="product-card"><p class="muted">Buscando produtos...</p></div>`;
+
+  try {
+    const products = await request("/search", {
+      method: "POST",
+      body: JSON.stringify({ query }),
+    });
+
+    renderResults(products);
+  } catch (error) {
+    resultsBox.innerHTML = `<div class="product-card"><p class="error">${error.message}</p></div>`;
+  }
+}
+
+function renderResults(products) {
+  if (!products.length) {
+    resultsBox.innerHTML = `<div class="product-card"><p class="muted">Nenhum produto encontrado.</p></div>`;
+    return;
+  }
+
+  resultsBox.innerHTML = products.map((product) => `
+    <article class="product-card">
+      <div class="product-card__top">
+        <div>
+          <h3>${product.name}</h3>
+          <p class="muted">${product.brand} • ${product.category}</p>
+        </div>
+        <strong class="product-card__price">R$ ${product.price}</strong>
+      </div>
+      <p>${product.description}</p>
+      <div class="product-tags">
+        <span>${product.skin_type}</span>
+        <span>${product.finish}</span>
+        <span>${product.color}</span>
+      </div>
+      <div class="score-row">
+        <span class="score-pill">Busca: ${product.search_score ?? 0}</span>
+        <span class="score-pill score-pill--pink">Match: ${product.match_score ?? "crie um perfil"}</span>
+      </div>
+    </article>
+  `).join("");
 }

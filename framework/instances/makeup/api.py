@@ -1,11 +1,14 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
 from pathlib import Path
 
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+
 from framework.instances.makeup.app import create_makeup_app
+from framework.instances.makeup.strategies.ai_analyzer import MakeupAIAnalyzer
+
 
 api = FastAPI(title="MakeupMatch API")
 
@@ -17,9 +20,15 @@ api.add_middleware(
 )
 
 BASE_DIR = Path(__file__).parent
-api.mount("/static", StaticFiles(directory=BASE_DIR / "frontend"), name="static")
+FRONTEND_DIR = BASE_DIR / "frontend"
 
-makeup = create_makeup_app()
+api.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+makeup = create_makeup_app(
+    ai_analyzer=MakeupAIAnalyzer(),
+    query_interpreter=None,
+)
+
 current_user = None
 
 
@@ -36,12 +45,16 @@ class SearchInput(BaseModel):
 
 
 def to_dict(obj):
-    return dict(obj.__dict__)
+    return {
+        key: value
+        for key, value in obj.__dict__.items()
+        if key != "owner"
+    }
 
 
 @api.get("/")
 def home():
-    return FileResponse(BASE_DIR / "frontend" / "index.html")
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 
 seller = makeup.users.create_user(
@@ -51,7 +64,7 @@ seller = makeup.users.create_user(
     password="123",
 )
 
-PRODUCTS = [
+for product in [
     {
         "name": "Base Natural Glow",
         "brand": "BeautyLab",
@@ -92,9 +105,7 @@ PRODUCTS = [
         "color": "vermelho",
         "price": 45,
     },
-]
-
-for product in PRODUCTS:
+]:
     makeup.posts.create_post(owner=seller, validated_data=product)
 
 
@@ -123,7 +134,6 @@ def create_user(data: UserInput):
 @api.post("/search")
 def search_products(data: SearchInput):
     results = makeup.search.search_posts(query=data.query)
-
     response = []
 
     for product in results:
