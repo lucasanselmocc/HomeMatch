@@ -1,9 +1,3 @@
-from django.db.models import Avg, Count
-
-from apps.properties.models import Condo, Properties, PropertiesPhotos, Reviews, Rooms, RoomsExtras
-from apps.properties.services import delete_from_cloud, upload_to_cloud
-
-
 from __future__ import annotations
 
 from typing import Any, Optional
@@ -11,18 +5,11 @@ from typing import Any, Optional
 from django.db.models import Avg, Count
 from django.shortcuts import get_object_or_404
 
+from apps.properties.models import Condo, Properties, PropertiesPhotos, Reviews, Rooms, RoomsExtras
+from apps.properties.services import delete_from_cloud, upload_to_cloud
+from apps.search.repositories import SearchRepository
 from framework.abstractions.abstract_post_repository import AbstractPostRepository
 from framework.abstractions.abstract_photo_repository import AbstractPhotoRepository
-
-from apps.properties.models import (
-    Condo,
-    Properties,
-    PropertiesPhotos,
-    Reviews,
-    Rooms,
-    RoomsExtras,
-)
-from apps.properties.services import delete_from_cloud, upload_to_cloud
 
 
 class PropertyRepository(AbstractPostRepository):
@@ -90,8 +77,8 @@ class PropertyRepository(AbstractPostRepository):
     def get_or_404(self, post_id: int) -> Any:
         return get_object_or_404(Properties, id=post_id)
 
-    def list_posts(self) -> list[Any]:
-        return list(
+    def list_posts(self) -> Any:
+        return (
             Properties.objects.select_related("rooms", "rooms_extras", "condo", "owner")
             .prefetch_related("photos", "nearby_places")
             .annotate(
@@ -104,6 +91,10 @@ class PropertyRepository(AbstractPostRepository):
     def save_post(self, post: Any) -> Any:
         post.save()
         return post
+
+    def filter_posts(self, criteria: dict) -> list[Any]:
+        return list(SearchRepository.filter_properties(criteria))
+
 class PhotoRepository(AbstractPhotoRepository):
     """
     Repositório concreto de fotos do HomeMatch.
@@ -127,12 +118,18 @@ class PhotoRepository(AbstractPhotoRepository):
     def get_by_id(self, photo_id: int) -> Optional[Any]:
         return PropertiesPhotos.objects.filter(id=photo_id).first()
 
+    def get_photo_by_id(self, photo_id: int) -> Optional[Any]:
+        return self.get_by_id(photo_id)
+
     def delete_photo(self, photo: Any) -> None:
         delete_from_cloud(photo.r2_key)
         photo.delete()
 
     def list_by_post(self, post: Any) -> list[Any]:
         return list(PropertiesPhotos.objects.filter(property=post).order_by("order"))
+
+    def list_photos_by_post(self, post: Any) -> list[Any]:
+        return self.list_by_post(post)
 
     def save_photo(self, photo: Any) -> Any:
         photo.save()
@@ -143,9 +140,10 @@ class PhotoRepository(AbstractPhotoRepository):
         photo.r2_key = upload_to_cloud(new_image)
         photo.save()
         return photo
-    
-    def filter_posts(self, criteria):
-        return SearchRepository.filter_properties(criteria)
+
+
+# Compatibility alias used by config.homematch_framework
+DjangoPostRepository = PropertyRepository
 
 class ReviewRepository:
     @staticmethod
