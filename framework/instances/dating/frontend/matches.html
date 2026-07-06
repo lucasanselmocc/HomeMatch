@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DatingMatch | Matches</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="page page-matches">
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">DM</span>
+        <span class="brand-text">DatingMatch</span>
+      </a>
+      <nav class="navbar__links">
+        <a href="/">Início</a>
+        <a href="/perfil.html">Criar perfil</a>
+        <a href="/descobrir.html">Descobrir</a>
+        <a class="active" href="/matches.html">Matches</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="page-intro page-intro--row">
+      <div>
+        <span class="kicker">Etapa 3 de 3</span>
+        <h1>Seus matches e perfis salvos.</h1>
+        <p class="lead">
+          Aqui aparecem perfis curtidos, salvos ou ranqueados com alta compatibilidade.
+        </p>
+      </div>
+      <div class="hero__actions">
+        <a class="btn btn--ghost" href="/descobrir.html">Continuar descobrindo</a>
+        <button class="btn" id="load-matches" type="button">Atualizar</button>
+      </div>
+    </section>
+
+    <section class="matches-layout">
+      <div class="match-column">
+        <h2>Compatíveis</h2>
+        <div id="liked-results" class="mini-list"></div>
+      </div>
+
+      <div class="match-column">
+        <h2>Salvos</h2>
+        <div id="saved-results" class="mini-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

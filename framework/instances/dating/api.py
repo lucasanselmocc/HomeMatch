@@ -1,113 +1,252 @@
-"""
-framework/instances/dating/api.py
-─────────────────────────────────
-API FastAPI da instância Dating, no mesmo padrão da instância Makeup.
-"""
-
 from __future__ import annotations
 
+import math
+import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
-
-from framework.instances.dating.app import create_dating_app
-from framework.instances.dating.strategies.ai_analyzer import DatingAIAnalyzer
+from pydantic import BaseModel
 
 
-api = FastAPI(title="DatingMatch API")
-
-api.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-BASE_DIR = Path(__file__).parent
+BASE_DIR = Path(__file__).resolve().parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 
+api = FastAPI(title="DatingMatch API", version="1.0.0")
 api.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
-dating = create_dating_app(
-    ai_analyzer=DatingAIAnalyzer(),
-    query_interpreter=None,
-)
 
-current_user: Any | None = None
-liked_profile_ids: set[int] = set()
-skipped_profile_ids: set[int] = set()
-saved_profile_ids: set[int] = set()
-
-
-class UserInput(BaseModel):
+class DatingUserPayload(BaseModel):
     email: str
     name: str
-    age: int = Field(ge=18, le=120)
-    city: str
-    bio: str
-    interests: list[str] = Field(default_factory=list)
-    hobbies: list[str] = Field(default_factory=list)
-    preferences: list[str] = Field(default_factory=list)
-    lifestyle: str
+    age: int = 23
+    city: str = "Natal"
+    bio: str = ""
+    interests: list[str] = []
+    hobbies: list[str] = []
+    preferences: list[str] = []
+    lifestyle: str = "ao ar livre"
+    photo_url: str | None = None
 
 
-class SearchInput(BaseModel):
+class SearchPayload(BaseModel):
     query: str
 
 
-def normalize_text(value: str) -> str:
-    return value.strip().lower()
+CURRENT_USER: dict[str, Any] = {
+    "id": 999,
+    "email": "lucas@email.com",
+    "name": "Lucas",
+    "age": 23,
+    "city": "Natal",
+    "bio": "Gosto de praia, filmes, tecnologia e rolês tranquilos.",
+    "interests": ["praia", "esportes", "filmes", "tecnologia"],
+    "hobbies": ["cinema", "caminhada", "jogos"],
+    "preferences": ["conversa leve", "atividades ao ar livre"],
+    "lifestyle": "ao ar livre",
+    "photo_url": None,
+}
+
+PROFILES: list[dict[str, Any]] = [
+    {
+        "id": 1,
+        "name": "Marina",
+        "age": 24,
+        "city": "Natal",
+        "bio": "Gosto de praia, corrida leve, cafés tranquilos e filmes no fim de semana.",
+        "interests": ["praia", "esportes", "filmes", "café"],
+        "hobbies": ["corrida", "cinema", "fotografia"],
+        "preferences": ["conversa leve", "atividades ao ar livre"],
+        "lifestyle": "ao ar livre",
+        "photo_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+        "id": 2,
+        "name": "Ana",
+        "age": 27,
+        "city": "Parnamirim",
+        "bio": "Amo viajar, testar restaurantes novos, assistir séries e planejar trilhas.",
+        "interests": ["viagens", "séries", "gastronomia", "trilhas"],
+        "hobbies": ["cozinhar", "viajar", "caminhada"],
+        "preferences": ["bom humor", "passeios"],
+        "lifestyle": "exploradora",
+        "photo_url": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+        "id": 3,
+        "name": "Júlia",
+        "age": 22,
+        "city": "Natal",
+        "bio": "Curto música ao vivo, academia, praia e conversas sobre tecnologia.",
+        "interests": ["música", "academia", "praia", "tecnologia"],
+        "hobbies": ["violão", "treino", "shows"],
+        "preferences": ["interesses em comum", "rotina saudável"],
+        "lifestyle": "ativa",
+        "photo_url": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=900&q=80",
+    },
+    {
+        "id": 4,
+        "name": "Lara",
+        "age": 25,
+        "city": "Natal",
+        "bio": "Gosto de livros, cinema, cafés, jogos de tabuleiro e rolês tranquilos.",
+        "interests": ["livros", "cinema", "café", "jogos"],
+        "hobbies": ["leitura", "board games", "filmes"],
+        "preferences": ["calma", "conversa profunda"],
+        "lifestyle": "caseira",
+        "photo_url": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=900&q=80",
+    },
+]
+
+LIKED_IDS: set[int] = set()
+SAVED_IDS: set[int] = set()
+SKIPPED_IDS: set[int] = set()
 
 
-def normalize_list(values: list[str]) -> list[str]:
-    return [normalize_text(value) for value in values if value and value.strip()]
+STOPWORDS = {
+    "a", "o", "os", "as", "um", "uma", "uns", "umas",
+    "de", "da", "do", "das", "dos", "e", "ou", "com",
+    "que", "quem", "alguem", "alguém", "pessoa", "pessoas",
+    "perfil", "perfis", "gosta", "gostam", "goste", "gostar", "curte", "curtem",
+    "pratica", "praticam", "assistir", "ver", "para", "por",
+}
+
+ALIASES = {
+    "esporte": {"esporte", "esportes", "corrida", "academia", "treino", "caminhada", "trilha", "trilhas"},
+    "esportes": {"esporte", "esportes", "corrida", "academia", "treino", "caminhada", "trilha", "trilhas"},
+    "filme": {"filme", "filmes", "cinema", "serie", "series", "série", "séries"},
+    "filmes": {"filme", "filmes", "cinema", "serie", "series", "série", "séries"},
+    "viajar": {"viajar", "viagem", "viagens", "trilha", "trilhas", "exploradora"},
+    "viagem": {"viajar", "viagem", "viagens", "trilha", "trilhas", "exploradora"},
+    "viagens": {"viajar", "viagem", "viagens", "trilha", "trilhas", "exploradora"},
+    "livro": {"livro", "livros", "leitura"},
+    "livros": {"livro", "livros", "leitura"},
+    "cafe": {"cafe", "cafes", "café", "cafés"},
+    "cafes": {"cafe", "cafes", "café", "cafés"},
+    "musica": {"musica", "música", "violao", "violão", "shows", "show"},
+    "tecnologia": {"tecnologia", "tech"},
+    "caseira": {"caseira", "calma", "livros", "leitura", "cafe", "cafes"},
+    "praia": {"praia", "ar livre", "outdoor"},
+}
 
 
-def to_dict(obj: Any) -> dict[str, Any]:
-    data = {
-        key: value
-        for key, value in getattr(obj, "__dict__", {}).items()
-        if key not in {"owner", "password"}
+def normalize(text: Any) -> str:
+    value = "" if text is None else str(text).lower()
+    value = unicodedata.normalize("NFD", value)
+    value = "".join(char for char in value if unicodedata.category(char) != "Mn")
+    return value
+
+
+def tokenize(text: str) -> list[str]:
+    normalized = normalize(text)
+    tokens = re.findall(r"[a-z0-9]+", normalized)
+    return [token for token in tokens if token not in STOPWORDS and len(token) > 1]
+
+
+def expanded_terms(term: str) -> set[str]:
+    normalized = normalize(term)
+    aliases = ALIASES.get(normalized, {normalized})
+    return {normalize(item) for item in aliases}
+
+
+def profile_text(profile: dict[str, Any]) -> str:
+    chunks = [
+        profile.get("name", ""),
+        profile.get("city", ""),
+        profile.get("bio", ""),
+        profile.get("lifestyle", ""),
+        " ".join(profile.get("interests", [])),
+        " ".join(profile.get("hobbies", [])),
+        " ".join(profile.get("preferences", [])),
+    ]
+    return normalize(" ".join(chunks))
+
+
+def relevance_score(profile: dict[str, Any], query: str) -> tuple[int, int, list[str]]:
+    terms = tokenize(query)
+    if not terms:
+        return 0, 0, []
+
+    text = profile_text(profile)
+    matched_terms: list[str] = []
+    score = 0
+
+    for term in terms:
+        options = expanded_terms(term)
+        matched = any(option in text for option in options)
+
+        if matched:
+            matched_terms.append(term)
+
+            if any(option in normalize(" ".join(profile.get("interests", []))) for option in options):
+                score += 4
+            if any(option in normalize(" ".join(profile.get("hobbies", []))) for option in options):
+                score += 3
+            if any(option in normalize(" ".join(profile.get("preferences", []))) for option in options):
+                score += 2
+            if any(option in normalize(profile.get("bio", "")) for option in options):
+                score += 2
+            if any(option in normalize(profile.get("lifestyle", "")) for option in options):
+                score += 2
+            if any(option in normalize(profile.get("city", "")) for option in options):
+                score += 1
+
+    return score, len(matched_terms), terms
+
+
+def calculate_match_score(profile: dict[str, Any]) -> int:
+    user_terms = {
+        *map(normalize, CURRENT_USER.get("interests", [])),
+        *map(normalize, CURRENT_USER.get("hobbies", [])),
+        *map(normalize, CURRENT_USER.get("preferences", [])),
+        normalize(CURRENT_USER.get("lifestyle", "")),
+        normalize(CURRENT_USER.get("city", "")),
     }
 
-    owner = getattr(obj, "owner", None)
-    if owner is not None:
-        data["owner_name"] = getattr(owner, "name", "")
-        data["owner_email"] = getattr(owner, "email", "")
+    profile_terms = {
+        *map(normalize, profile.get("interests", [])),
+        *map(normalize, profile.get("hobbies", [])),
+        *map(normalize, profile.get("preferences", [])),
+        normalize(profile.get("lifestyle", "")),
+        normalize(profile.get("city", "")),
+    }
 
-    return data
+    user_terms = {item for item in user_terms if item}
+    profile_terms = {item for item in profile_terms if item}
 
+    if not user_terms:
+        return 0
 
-def score_profile(profile: Any) -> int | None:
-    if current_user is None:
-        return None
+    common = user_terms.intersection(profile_terms)
+    base = int((len(common) / max(len(user_terms), 1)) * 100)
 
-    scores = dating.match_score.calculate_match_score(
-        user=current_user,
-        posts=[profile],
-    )
-    return scores[0][1] if scores else None
+    if normalize(CURRENT_USER.get("city")) == normalize(profile.get("city")):
+        base += 10
 
-
-def serialize_profile(profile: Any) -> dict[str, Any]:
-    item = to_dict(profile)
-    item["match_score"] = score_profile(profile)
-    item["liked"] = profile.id in liked_profile_ids
-    item["skipped"] = profile.id in skipped_profile_ids
-    item["saved"] = profile.id in saved_profile_ids
-    return item
+    return min(100, max(20, base))
 
 
-def get_profile_or_404(profile_id: int) -> Any:
-    profile = dating.posts.get_post(post_id=profile_id)
-    if profile is None:
-        raise HTTPException(status_code=404, detail="Perfil não encontrado.")
-    return profile
+def serialize_profile(profile: dict[str, Any], search_score: int | None = None) -> dict[str, Any]:
+    return {
+        **profile,
+        "search_score": search_score,
+        "owner_name": profile["name"],
+        "owner_email": f'{normalize(profile["name"])}@dating.com',
+        "match_score": calculate_match_score(profile),
+        "liked": profile["id"] in LIKED_IDS,
+        "skipped": profile["id"] in SKIPPED_IDS,
+        "saved": profile["id"] in SAVED_IDS,
+    }
+
+
+def get_profile(profile_id: int) -> dict[str, Any]:
+    for profile in PROFILES:
+        if profile["id"] == profile_id:
+            return profile
+    raise ValueError("Perfil não encontrado.")
 
 
 @api.get("/")
@@ -115,175 +254,111 @@ def home():
     return FileResponse(FRONTEND_DIR / "index.html")
 
 
-seed_profiles = [
-    {
-        "user": {
-            "email": "marina@dating.com",
-            "name": "Marina",
-            "user_type": "perfil",
-            "password": "123",
-        },
-        "profile": {
-            "name": "Marina",
-            "age": 24,
-            "city": "Natal",
-            "bio": "Gosto de praia, corrida leve, cafés tranquilos e filmes no fim de semana.",
-            "interests": ["praia", "esportes", "filmes", "café"],
-            "hobbies": ["corrida", "cinema", "fotografia"],
-            "preferences": ["conversa leve", "atividades ao ar livre"],
-            "lifestyle": "ao ar livre",
-            "photo_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80",
-        },
-    },
-    {
-        "user": {
-            "email": "ana@dating.com",
-            "name": "Ana",
-            "user_type": "perfil",
-            "password": "123",
-        },
-        "profile": {
-            "name": "Ana",
-            "age": 27,
-            "city": "Parnamirim",
-            "bio": "Amo viajar, testar restaurantes novos, assistir séries e planejar trilhas.",
-            "interests": ["viagens", "séries", "gastronomia", "trilhas"],
-            "hobbies": ["cozinhar", "viajar", "caminhada"],
-            "preferences": ["bom humor", "passeios"],
-            "lifestyle": "exploradora",
-            "photo_url": "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80",
-        },
-    },
-    {
-        "user": {
-            "email": "julia@dating.com",
-            "name": "Júlia",
-            "user_type": "perfil",
-            "password": "123",
-        },
-        "profile": {
-            "name": "Júlia",
-            "age": 22,
-            "city": "Natal",
-            "bio": "Curto música ao vivo, academia, praia e conversas sobre tecnologia.",
-            "interests": ["música", "academia", "praia", "tecnologia"],
-            "hobbies": ["violão", "treino", "shows"],
-            "preferences": ["interesses em comum", "rotina saudável"],
-            "lifestyle": "ativa",
-            "photo_url": "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=900&q=80",
-        },
-    },
-    {
-        "user": {
-            "email": "lara@dating.com",
-            "name": "Lara",
-            "user_type": "perfil",
-            "password": "123",
-        },
-        "profile": {
-            "name": "Lara",
-            "age": 25,
-            "city": "Natal",
-            "bio": "Gosto de livros, cinema, cafés, jogos de tabuleiro e rolês tranquilos.",
-            "interests": ["livros", "cinema", "café", "jogos"],
-            "hobbies": ["leitura", "board games", "filmes"],
-            "preferences": ["calma", "conversa profunda"],
-            "lifestyle": "caseira",
-            "photo_url": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=900&q=80",
-        },
-    },
-]
+@api.get("/perfil.html")
+def profile_page():
+    return FileResponse(FRONTEND_DIR / "perfil.html")
 
-for item in seed_profiles:
-    user = dating.users.create_user(**item["user"])
-    dating.posts.create_post(owner=user, validated_data=item["profile"])
+
+@api.get("/descobrir.html")
+def discover_page():
+    return FileResponse(FRONTEND_DIR / "descobrir.html")
+
+
+@api.get("/matches.html")
+def matches_page():
+    return FileResponse(FRONTEND_DIR / "matches.html")
 
 
 @api.get("/profiles")
 def list_profiles():
-    profiles = dating.posts.list_posts()
-    return [serialize_profile(profile) for profile in profiles]
+    return [serialize_profile(profile) for profile in PROFILES]
 
 
 @api.post("/user")
-def create_or_update_user(data: UserInput):
-    global current_user
+def create_or_update_user(payload: DatingUserPayload):
+    CURRENT_USER.update(payload.model_dump())
+    CURRENT_USER["id"] = 999
+    return CURRENT_USER
 
-    try:
-        current_user = dating.users.get_user_by_email(email=data.email)
-    except Exception:
-        current_user = None
 
-    if current_user is None:
-        current_user = dating.users.create_user(
-            email=data.email,
-            name=data.name,
-            user_type="pessoa",
-            password="123",
-        )
-
-    current_user.name = data.name.strip()
-    current_user.age = data.age
-    current_user.city = data.city.strip()
-    current_user.bio = data.bio.strip()
-    current_user.interests = normalize_list(data.interests)
-    current_user.hobbies = normalize_list(data.hobbies)
-    current_user.preferences = normalize_list(data.preferences)
-    current_user.lifestyle = data.lifestyle.strip().lower()
-
-    return to_dict(current_user)
+@api.get("/user")
+def get_current_user():
+    return CURRENT_USER
 
 
 @api.post("/search")
-def search_profiles(data: SearchInput):
-    results = dating.search.search_posts(query=data.query)
-    return [serialize_profile(profile) for profile in results]
+def search_profiles(payload: SearchPayload):
+    ranked: list[tuple[dict[str, Any], int, int, int]] = []
+
+    for profile in PROFILES:
+        score, matched_count, terms = relevance_score(profile, payload.query)
+
+        if not terms:
+            continue
+
+        required_matches = len(set(terms))
+
+        if matched_count >= required_matches:
+            ranked.append((profile, score, matched_count, calculate_match_score(profile)))
+
+    ranked.sort(key=lambda item: (item[1], item[2], item[3]), reverse=True)
+
+    return [
+        serialize_profile(profile, search_score=score)
+        for profile, score, _, _ in ranked
+        if profile["id"] not in SKIPPED_IDS
+    ]
 
 
 @api.post("/profiles/{profile_id}/like")
 def like_profile(profile_id: int):
-    profile = get_profile_or_404(profile_id)
-    liked_profile_ids.add(profile.id)
-    skipped_profile_ids.discard(profile.id)
-    return serialize_profile(profile)
+    get_profile(profile_id)
+    LIKED_IDS.add(profile_id)
+    SKIPPED_IDS.discard(profile_id)
+    return {"message": "Perfil curtido.", "profile_id": profile_id}
 
 
 @api.post("/profiles/{profile_id}/skip")
 def skip_profile(profile_id: int):
-    profile = get_profile_or_404(profile_id)
-    skipped_profile_ids.add(profile.id)
-    liked_profile_ids.discard(profile.id)
-    return serialize_profile(profile)
+    get_profile(profile_id)
+    SKIPPED_IDS.add(profile_id)
+    LIKED_IDS.discard(profile_id)
+    return {"message": "Perfil ignorado.", "profile_id": profile_id}
 
 
 @api.post("/profiles/{profile_id}/save")
 def save_profile(profile_id: int):
-    profile = get_profile_or_404(profile_id)
+    get_profile(profile_id)
 
-    if profile.id in saved_profile_ids:
-        saved_profile_ids.remove(profile.id)
-    else:
-        saved_profile_ids.add(profile.id)
+    if profile_id in SAVED_IDS:
+        SAVED_IDS.remove(profile_id)
+        return {"message": "Perfil removido dos salvos.", "profile_id": profile_id, "saved": False}
 
-    return serialize_profile(profile)
+    SAVED_IDS.add(profile_id)
+    return {"message": "Perfil salvo.", "profile_id": profile_id, "saved": True}
 
 
 @api.get("/matches")
-def list_matches():
-    profiles = dating.posts.list_posts()
-    serialized = [serialize_profile(profile) for profile in profiles]
+def matches():
+    liked = [
+        serialize_profile(profile)
+        for profile in PROFILES
+        if profile["id"] in LIKED_IDS
+    ]
+
+    saved = [
+        serialize_profile(profile)
+        for profile in PROFILES
+        if profile["id"] in SAVED_IDS
+    ]
 
     compatible = [
-        item
-        for item in serialized
-        if item["id"] in liked_profile_ids or (item.get("match_score") or 0) >= 55
+        serialize_profile(profile)
+        for profile in sorted(PROFILES, key=calculate_match_score, reverse=True)
+        if calculate_match_score(profile) >= 55
     ]
-    saved = [item for item in serialized if item["id"] in saved_profile_ids]
-
-    compatible.sort(key=lambda item: item.get("match_score") or 0, reverse=True)
-    saved.sort(key=lambda item: item.get("match_score") or 0, reverse=True)
 
     return {
-        "liked": compatible,
+        "liked": liked or compatible,
         "saved": saved,
     }

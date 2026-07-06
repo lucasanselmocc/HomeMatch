@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DatingMatch | Descobrir</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="page page-discover">
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">DM</span>
+        <span class="brand-text">DatingMatch</span>
+      </a>
+      <nav class="navbar__links">
+        <a href="/">Início</a>
+        <a href="/perfil.html">Criar perfil</a>
+        <a class="active" href="/descobrir.html">Descobrir</a>
+        <a href="/matches.html">Matches</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="page-intro page-intro--row">
+      <div>
+        <span class="kicker">Etapa 2 de 3</span>
+        <h1>Descubra perfis compatíveis.</h1>
+        <p class="lead">
+          Pesquise do jeito natural. O framework cruza os termos da busca com os atributos dos perfis.
+        </p>
+      </div>
+      <a class="btn btn--ghost" href="/perfil.html">Editar perfil</a>
+    </section>
+
+    <section class="search-workspace">
+      <div class="search-panel">
+        <form class="search-card search-card--large" id="search-form">
+          <input id="query" type="text" value="pessoas que gostam de praia e praticam esportes" />
+          <button class="btn" type="submit">Buscar</button>
+        </form>
+
+        <div class="chips">
+          <button type="button" data-query="pessoas que gostam de praia e praticam esportes">Praia e esportes</button>
+          <button type="button" data-query="alguém que goste de viajar e assistir filmes">Viagens e filmes</button>
+          <button type="button" data-query="pessoa caseira que gosta de livros e café">Livros e café</button>
+          <button type="button" data-query="perfil com tecnologia música e academia">Tech e música</button>
+        </div>
+      </div>
+
+      <div id="results" class="profiles-grid"></div>
+    </section>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

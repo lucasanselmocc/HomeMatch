@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MakeupMatch | Perfil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="page page-profile">
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">MM</span>
+        <span class="brand-text">MakeupMatch</span>
+      </a>
+      <nav class="navbar__links">
+        <a href="/">Início</a>
+        <a class="active" href="/perfil.html">Perfil</a>
+        <a href="/buscar.html">Buscar</a>
+        <a href="/recomendacoes.html">Recomendações</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="page-intro">
+      <span class="kicker">Etapa 1 de 3</span>
+      <h1>Crie seu perfil de beleza.</h1>
+      <p class="lead">
+        Esses dados alimentam a estratégia de match-score da instância Makeup.
+        Depois de salvar, você segue para a busca de produtos.
+      </p>
+    </section>
+
+    <section class="profile-layout">
+      <form class="form-card profile-form" id="profile-form">
+        <label>E-mail<input id="email" type="email" value="bia@email.com" required /></label>
+        <label>Nome<input id="name" type="text" value="Bia" required /></label>
+        <label>Tipo de pele<input id="skinType" type="text" value="oleosa" required /></label>
+        <label>Acabamento preferido<input id="finish" type="text" value="natural" required /></label>
+        <label>Preço máximo<input id="maxPrice" type="number" value="80" min="0" required /></label>
+
+        <button class="btn btn--block" type="submit">Salvar perfil e buscar produtos</button>
+        <div id="profile-status" class="status"></div>
+      </form>
+
+      <aside class="beauty-profile-preview">
+        <span class="product-badge">Seu perfil</span>
+        <h2 id="preview-name">Bia</h2>
+        <p id="preview-text">Pele oleosa, acabamento natural e preço máximo de R$ 80.</p>
+
+        <div class="beauty-face">
+          <span class="face-glow"></span>
+          <span class="face-lips"></span>
+          <span class="face-blush"></span>
+        </div>
+
+        <div class="product-tags" id="preview-tags">
+          <span>oleosa</span>
+          <span>natural</span>
+          <span>até R$ 80</span>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

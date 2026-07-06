@@ -3,45 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DatingMatch | Compatibilidade</title>
+  <title>DatingMatch | Início</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
-<body>
+<body class="page page-home">
   <header class="navbar">
     <div class="navbar__inner">
-      <a class="brand" href="#home" aria-label="DatingMatch">
+      <a class="brand" href="/">
         <span class="brand-mark">DM</span>
         <span class="brand-text">DatingMatch</span>
       </a>
       <nav class="navbar__links">
-        <a href="#home">Início</a>
-        <a href="#perfil">Perfil</a>
-        <a href="#descobrir">Descobrir</a>
-        <a href="#matches">Matches</a>
+        <a href="/">Início</a>
+        <a href="/perfil.html">Criar perfil</a>
+        <a href="/descobrir.html">Descobrir</a>
+        <a href="/matches.html">Matches</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="container hero" id="home">
-      <div>
-        <span class="kicker">Instância Dating do framework</span>
+    <section class="flow-hero">
+      <div class="flow-hero__content">
+        <span class="kicker">Instância Dating do framework HomeMatch</span>
         <h1>Encontre pessoas compatíveis com seu perfil.</h1>
-        <p class="lead">Crie seu perfil, pesquise em linguagem natural e veja perfis ranqueados por interesses, hobbies, cidade e estilo de vida.</p>
+        <p class="lead">
+          Crie seu perfil, busque por linguagem natural e veja pessoas ranqueadas por interesses,
+          hobbies, cidade e estilo de vida.
+        </p>
+
         <form class="search-card" id="hero-search">
-          <input id="hero-query" type="text" value="pessoas que gostam de praia e praticam esportes" autocomplete="off" />
+          <input id="hero-query" type="text" value="pessoas que gostam de praia e praticam esportes" />
           <button class="btn" type="submit">Buscar</button>
         </form>
+
         <div class="hero__actions">
-          <a class="btn btn--secondary" href="#perfil">Criar perfil</a>
-          <a class="btn btn--ghost" href="#descobrir">Ver perfis</a>
+          <a class="btn" href="/perfil.html">Começar criando perfil</a>
+          <a class="btn btn--ghost" href="/descobrir.html">Ver perfis</a>
         </div>
       </div>
 
-      <aside class="phone-preview" aria-label="Perfil em destaque">
+      <aside class="hero-phone">
         <div class="phone-card">
           <div class="phone-card__image"></div>
           <span class="profile-badge">Match 92%</span>
@@ -55,77 +60,25 @@
       </aside>
     </section>
 
-    <section class="container grid-section" id="perfil">
-      <div class="section-head">
-        <span class="kicker">Perfil</span>
-        <h2>Crie sua conta.</h2>
-        <p class="lead">Esses dados alimentam a estratégia de match-score da instância de relacionamentos.</p>
-      </div>
-
-      <form class="form-card" id="profile-form">
-        <label>E-mail<input id="email" type="email" value="lucas@email.com" required /></label>
-        <label>Nome<input id="name" type="text" value="Lucas" required /></label>
-        <label>Idade<input id="age" type="number" value="23" min="18" required /></label>
-        <label>Cidade<input id="city" type="text" value="Natal" required /></label>
-        <label>Bio<textarea id="bio" rows="3" required>Gosto de praia, filmes, tecnologia e rolês tranquilos.</textarea></label>
-        <label>Interesses<input id="interests" type="text" value="praia, esportes, filmes, tecnologia" required /></label>
-        <label>Hobbies<input id="hobbies" type="text" value="cinema, caminhada, jogos" required /></label>
-        <label>Preferências<input id="preferences" type="text" value="conversa leve, atividades ao ar livre" required /></label>
-        <label>Estilo de vida<input id="lifestyle" type="text" value="ao ar livre" required /></label>
-        <button class="btn btn--block" type="submit">Salvar perfil</button>
-        <div id="profile-status" class="status"></div>
-      </form>
-    </section>
-
-    <section class="container grid-section" id="descobrir">
-      <div class="section-head">
-        <span class="kicker">Busca natural</span>
-        <h2>Descubra perfis.</h2>
-        <p class="lead">Use frases da instância de relacionamentos e o framework ranqueia os perfis encontrados.</p>
-      </div>
-
-      <div class="search-panel">
-        <form class="search-card search-card--large" id="search-form">
-          <input id="query" type="text" value="pessoas que gostam de praia e praticam esportes" autocomplete="off" />
-          <button class="btn" type="submit">Buscar</button>
-        </form>
-        <div class="chips">
-          <button type="button" data-query="pessoas que gostam de praia e praticam esportes">Praia e esportes</button>
-          <button type="button" data-query="alguém que goste de viajar e assistir filmes">Viagens e filmes</button>
-          <button type="button" data-query="pessoa caseira que gosta de livros e café">Livros e café</button>
-          <button type="button" data-query="perfil com tecnologia música e academia">Tech e música</button>
-        </div>
-      </div>
-
-      <div id="results" class="profiles-grid"></div>
-    </section>
-
-    <section class="container grid-section" id="matches">
-      <div class="section-head">
-        <span class="kicker">Interações</span>
-        <h2>Matches e salvos.</h2>
-        <p class="lead">Perfis curtidos, salvos ou com alta compatibilidade aparecem aqui.</p>
-      </div>
-
-      <div class="match-actions">
-        <button class="btn btn--secondary" id="load-matches" type="button">Atualizar matches</button>
-      </div>
-
-      <div class="matches-layout">
-        <div>
-          <h3>Compatíveis</h3>
-          <div id="liked-results" class="mini-list"></div>
-        </div>
-        <div>
-          <h3>Salvos</h3>
-          <div id="saved-results" class="mini-list"></div>
-        </div>
-      </div>
+    <section class="flow-steps">
+      <article>
+        <span>01</span>
+        <h2>Crie seu perfil</h2>
+        <p>Informe interesses, hobbies, cidade, preferências e estilo de vida.</p>
+      </article>
+      <article>
+        <span>02</span>
+        <h2>Descubra pessoas</h2>
+        <p>Pesquise em linguagem natural, como “pessoas que gostam de praia”.</p>
+      </article>
+      <article>
+        <span>03</span>
+        <h2>Veja matches</h2>
+        <p>Curta, salve e acompanhe os perfis mais compatíveis.</p>
+      </article>
     </section>
   </main>
 
-  <footer class="footer">DatingMatch • Framework HomeMatch</footer>
-
-  <script type="module" src="/static/script.js"></script>
+  <script src="/static/script.js"></script>
 </body>
 </html>
