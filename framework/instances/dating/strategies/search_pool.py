@@ -10,7 +10,6 @@ from typing import Any, List
 
 from framework.abstractions.abstract_search_pool import AbstractSearchPool
 
-
 class DatingSearchPool(AbstractSearchPool):
     """
     Define atributos pesquisáveis e ranking para perfis de encontros.
@@ -31,11 +30,11 @@ class DatingSearchPool(AbstractSearchPool):
         for post in posts:
             searchable_text = " ".join(
                 [
-                    str(post.get("bio", "")),
-                    " ".join(post.get("interests", [])),
-                    " ".join(post.get("hobbies", [])),
-                    str(post.get("city", "")),
-                    str(post.get("lifestyle", "")),
+                    str(getattr(post, "bio", "")),
+                    " ".join(getattr(post, "interests", [])),
+                    " ".join(getattr(post, "hobbies", [])),
+                    str(getattr(post, "city", "")),
+                    str(getattr(post, "lifestyle", "")),
                 ]
             ).lower()
 
@@ -44,3 +43,6 @@ class DatingSearchPool(AbstractSearchPool):
             )
 
         return sorted(posts, key=lambda item: item.search_score, reverse=True)
+
+    def persist(self, results):
+        pass

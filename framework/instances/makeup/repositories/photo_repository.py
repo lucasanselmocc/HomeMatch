@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from framework.abstractions.abstract_photo_repository import AbstractPhotoRepository
+from framework.instances.demo_models import DemoObject
 
 
 class MakeupPhotoRepository(AbstractPhotoRepository):
@@ -11,12 +12,12 @@ class MakeupPhotoRepository(AbstractPhotoRepository):
         self.photos = []
 
     def create_photo(self, *, post, image, validated_data=None):
-        photo = {
-            "id": len(self.photos) + 1,
-            "post": post,
-            "image": image,
-            **(validated_data or {}),
-        }
+        photo = DemoObject(
+        id=len(self.photos) + 1,
+        post=post,
+        image=image,
+        **(validated_data or {}),
+        )
         self.photos.append(photo)
         return photo
 

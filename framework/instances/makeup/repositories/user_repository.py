@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 from framework.abstractions.abstract_user_repository import AbstractUserRepository
+from framework.instances.demo_models import DemoObject
 
 
 class MakeupUserRepository(AbstractUserRepository):
@@ -10,13 +11,13 @@ class MakeupUserRepository(AbstractUserRepository):
         self.users: list[Any] = []
 
     def create_user(self, *, email, name, user_type, password):
-        user = {
-            "id": len(self.users) + 1,
-            "email": email,
-            "name": name,
-            "user_type": user_type,
-            "password": password,
-        }
+        user = DemoObject(
+        id=len(self.users) + 1,
+        email=email,
+        name=name,
+        user_type=user_type,
+        password=password,
+        )
         self.users.append(user)
         return user
 

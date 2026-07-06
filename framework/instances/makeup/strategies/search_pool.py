@@ -33,13 +33,13 @@ class MakeupSearchPool(AbstractSearchPool):
         for post in posts:
             searchable_text = " ".join(
                 [
-                    str(post.get("name", "")),
-                    str(post.get("brand", "")),
-                    str(post.get("category", "")),
-                    str(post.get("description", "")),
-                    str(post.get("skin_type", "")),
-                    str(post.get("finish", "")),
-                    str(post.get("color", "")),
+                    str(getattr(post, "name", "")),
+                    str(getattr(post, "brand", "")),
+                    str(getattr(post, "category", "")),
+                    str(getattr(post, "description", "")),
+                    str(getattr(post, "skin_type", "")),
+                    str(getattr(post, "finish", "")),
+                    str(getattr(post, "color", "")),
                 ]
             ).lower()
 
@@ -48,3 +48,6 @@ class MakeupSearchPool(AbstractSearchPool):
             )
 
         return sorted(posts, key=lambda item: item.search_score, reverse=True)
+
+    def persist(self, results):
+        pass

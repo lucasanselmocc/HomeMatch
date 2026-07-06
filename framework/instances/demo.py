@@ -19,8 +19,9 @@ def run_dating_demo():
         user_type="cliente",
         password="123",
     )
-    user["interests"] = ["praia", "viagem", "filmes"]
-    user["city"] = "Campo Grande"
+
+    user.interests = ["praia", "viagem", "filmes"]
+    user.city = "Campo Grande"
 
     profile = app.posts.create_post(
         owner=user,
@@ -48,17 +49,17 @@ def run_dating_demo():
         query="pessoa que gosta de praia e viagem",
     )
 
-    score = app.match_score.calculate_match_score(
-        user=user,
-        target=profile,
-    )
+    scores = app.match_score.calculate_match_score(
+    user=user,
+    posts=[profile],
+)
 
     print("Usuário:", user)
     print("Perfil criado:", profile)
     print("Foto criada:", photo)
     print("Atributos gerados:", attributes)
     print("Resultado da busca:", results)
-    print("Match-score:", score)
+    print("Match-score:", scores)
 
 
 def run_makeup_demo():
@@ -72,9 +73,10 @@ def run_makeup_demo():
         user_type="cliente",
         password="123",
     )
-    user["skin_type"] = "oleosa"
-    user["preferred_finish"] = "natural"
-    user["max_price"] = 80
+
+    user.skin_type = "oleosa"
+    user.preferred_finish = "natural"
+    user.max_price = 80
 
     product = app.posts.create_post(
         owner=user,
@@ -105,17 +107,17 @@ def run_makeup_demo():
         query="base para pele oleosa acabamento natural",
     )
 
-    score = app.match_score.calculate_match_score(
-        user=user,
-        target=product,
-    )
+    scores = app.match_score.calculate_match_score(
+    user=user,
+    posts=[product],
+)
 
     print("Usuário:", user)
     print("Produto criado:", product)
     print("Foto criada:", photo)
     print("Atributos gerados:", attributes)
     print("Resultado da busca:", results)
-    print("Match-score:", score)
+    print("Match-score:", scores)
 
 
 if __name__ == "__main__":
