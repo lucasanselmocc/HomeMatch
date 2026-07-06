@@ -25,22 +25,22 @@ class HomeMatchAttributeStorage(AbstractAttributeStorage):
     a partir das fotos dos imóveis.
     """
 
-    def replace_photo_attributes(self, *, photo: Any, attributes: list[dict]) -> None:
+    def save_photo_attributes(self, photo: Any, attributes: list[dict]) -> None:
         """
-        Substitui os atributos subjetivos de uma foto.
+        Persiste os atributos subjetivos de uma foto.
         """
         SubjectiveAttributeRepository.replace_photo_attributes(
             photo=photo,
             attributes=attributes,
         )
 
-    def refresh_post_attributes(self, *, post: Any) -> None:
+    def refresh_post_aggregates(self, post: Any) -> None:
         """
         Atualiza os atributos médios da postagem/imóvel.
         """
         SubjectiveAttributeRepository.refresh_property_aggregates(post)
 
-    def get_post_attributes(self, *, post: Any) -> list[dict]:
+    def get_attributes_for_post(self, post: Any) -> list[dict]:
         """
         Retorna os atributos subjetivos médios de um imóvel.
         """

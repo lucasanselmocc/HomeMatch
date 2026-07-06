@@ -12,12 +12,26 @@ a camada de dados original sem reimplementação.
 """
 
 from __future__ import annotations
+import io
 from typing import Any, List, Optional
 
 from apps.properties.models import Properties
+from apps.properties.repositories import PhotoRepository as DjangoPropertyPhotoRepository
 from apps.properties.repositories import PropertyRepository
 from apps.users.repositories import UserRepository as _DjangoUserRepo
 from framework.abstractions.abstract_post_repository import AbstractPostRepository
+from framework.abstractions.abstract_photo_repository import AbstractPhotoRepository
+
+
+class _DemoImageFile(io.BytesIO):
+    def __init__(self, name: str, content: bytes | None = None):
+        super().__init__(content or b"demo image content")
+        self.name = name
+        self.content_type = "image/jpeg"
+
+    def chunks(self):
+        self.seek(0)
+        yield self.read()
 from framework.abstractions.abstract_user_repository import AbstractUserRepository
 
 
@@ -31,22 +45,37 @@ class RealEstateUserRepository(AbstractUserRepository):
     Delega para apps.users.repositories.UserRepository (ponto fixo).
     """
 
+    def __init__(self) -> None:
+        self._repository = _DjangoUserRepo()
+
     def create_user(
         self, *, email: str, name: str, user_type: str, password: str
     ) -> Any:
-        return _DjangoUserRepo.create_user(
+        return self._repository.create_user(
             email=email, name=name, user_type=user_type, password=password
         )
 
     def email_exists(self, email: str) -> bool:
-        return _DjangoUserRepo.email_exists(email)
+        return self._repository.email_exists(email)
 
     def save_user(self, user: Any) -> Any:
-        return _DjangoUserRepo.save_user(user)
+        return self._repository.save_user(user)
 
     def get_by_email(self, email: str) -> Optional[Any]:
         from apps.users.models import User
         return User.objects.filter(email=email).first()
+
+    def delete_user(self, user: Any) -> None:
+        return self._repository.delete_user(user)
+
+    def list_users(self) -> list[Any]:
+        return self._repository.list_users()
+
+    def delete_user(self, user: Any) -> None:
+        return _DjangoUserRepo.delete_user(user)
+
+    def list_users(self) -> list[Any]:
+        return _DjangoUserRepo.list_users()
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -61,32 +90,53 @@ class RealEstatePostRepository(AbstractPostRepository):
 
     def create_post(self, *, owner: Any, validated_data: dict) -> Any:
         """
-        Cria um imóvel.  validated_data deve incluir rooms, rooms_extras e
-        condo já resolvidos (ou None para condo).
+        Cria um imóvel usando o repositório de propriedades do Django.
         """
-        rooms_data = validated_data.pop("rooms", {})
-        rooms_extras_data = validated_data.pop("rooms_extras", {})
-        condo_data = validated_data.pop("condo", None)
-
-        rooms, _ = PropertyRepository.get_or_create_rooms(rooms_data)
-        rooms_extras, _ = PropertyRepository.get_or_create_rooms_extras(rooms_extras_data)
-        condo = None
-        if condo_data:
-            condo, _ = PropertyRepository.get_or_create_condo(condo_data)
-
-        validated_data["owner"] = owner
-        return PropertyRepository.create_property(
-            rooms=rooms,
-            rooms_extras=rooms_extras,
-            condo=condo,
-            validated_data=validated_data,
-        )
+        return PropertyRepository().create_post(owner=owner, validated_data=validated_data)
 
     def save_post(self, post: Any) -> Any:
-        return PropertyRepository.save_model(post)
+        return PropertyRepository().save_post(post)
 
     def list_posts(self) -> List[Any]:
-        return list(PropertyRepository.list_properties_with_order())
+        return PropertyRepository().list_posts()
 
     def get_post_by_id(self, post_id: Any) -> Optional[Any]:
-        return Properties.objects.filter(pk=post_id).first()
+        return PropertyRepository().get_by_id(post_id)
+
+    def delete_post(self, post: Any) -> None:
+        PropertyRepository().delete_post(post)
+
+    def filter_posts(self, criteria: dict) -> list[Any]:
+        return list(Properties.objects.filter(**criteria).order_by("created_at"))
+
+
+class RealEstatePhotoRepository(AbstractPhotoRepository):
+    """
+    Repositório de fotos para a Plataforma Imobiliária.
+    Delegação para o repositório de fotos do aplicativo de propriedades.
+    """
+
+    def __init__(self) -> None:
+        self._repository = DjangoPropertyPhotoRepository()
+
+    def create_photo(
+        self,
+        *,
+        post: Any,
+        image: Any,
+        validated_data: dict | None = None,
+    ) -> Any:
+        validated_data = validated_data or {}
+        order = validated_data.get("order", 1)
+        if isinstance(image, str):
+            image = _DemoImageFile(name=image)
+        return self._repository.create_photo(post=post, image=image, order=order)
+
+    def list_photos_by_post(self, post: Any) -> List[Any]:
+        return self._repository.list_by_post(post)
+
+    def get_photo_by_id(self, photo_id: Any) -> Optional[Any]:
+        return self._repository.get_by_id(photo_id)
+
+    def delete_photo(self, photo: Any) -> None:
+        self._repository.delete_photo(photo)

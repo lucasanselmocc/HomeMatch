@@ -11,7 +11,10 @@ from decimal import Decimal
 from typing import Any
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Avg
 
+from apps.properties.models import Condo, Properties, PropertiesPhotos, Reviews, Rooms, RoomsExtras
+from apps.properties.services import delete_from_cloud, upload_to_cloud
 from framework.abstractions.abstract_match_score_strategy import (
     AbstractMatchScoreStrategy,
 )
@@ -292,3 +295,78 @@ class HomeMatchMatchScoreStrategy(AbstractMatchScoreStrategy):
             return None
 
         return counter.most_common(1)[0][0]
+
+    def persist(self, user: Any, scores: list[tuple[Any, int]]) -> None:
+        """
+        Persistência de scores é opcional neste domínio.
+
+        O framework exige o método, mas a versão atual armazena o
+        resultado em memória como anotação no objeto de propriedade.
+        """
+        for post, score in scores:
+            post.match_score = score
+
+
+class PropertyUseCase:
+    @staticmethod
+    def create_property(validated_data: dict) -> Properties:
+        from apps.properties.repositories import PropertyRepository
+
+        return PropertyRepository().create_post(owner=None, validated_data=validated_data)
+
+    @staticmethod
+    def update_property(instance: Properties, validated_data: dict) -> Properties:
+        from apps.properties.repositories import PropertyRepository
+
+        return PropertyRepository().update_post(post=instance, validated_data=validated_data)
+
+
+class PhotoUseCase:
+    @staticmethod
+    def create_photo(property_obj: Properties, validated_data: dict) -> PropertiesPhotos:
+        from apps.properties.repositories import PhotoRepository
+
+        return PhotoRepository().create_photo(
+            post=property_obj,
+            image=validated_data["image"],
+            order=validated_data.get("order", 0),
+        )
+
+    @staticmethod
+    def update_photo(instance: PropertiesPhotos, validated_data: dict) -> PropertiesPhotos:
+        from apps.properties.repositories import PhotoRepository
+
+        repo = PhotoRepository()
+        new_image = validated_data.get("image")
+
+        if new_image is not None:
+            return repo.replace_photo_image(instance, new_image)
+
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+
+        return repo.save_photo(instance)
+
+
+class ReviewUseCase:
+    @staticmethod
+    def validate_unique_review(*, user: Any, property_id: int, instance: Any = None) -> bool:
+        from apps.properties.repositories import ReviewRepository
+
+        return not ReviewRepository.user_has_review_for_property(
+            user=user,
+            property_id=property_id,
+            instance=instance,
+        )
+
+    @staticmethod
+    def get_reviews_for_property(property_id: int):
+        from apps.properties.repositories import ReviewRepository
+
+        return ReviewRepository.review_queryset_for_property(property_id)
+
+    @staticmethod
+    def get_average_rating(property_obj: Properties) -> float | None:
+        from apps.properties.repositories import ReviewRepository
+
+        return ReviewRepository.average_rating_for_property(property_obj)

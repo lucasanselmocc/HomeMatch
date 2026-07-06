@@ -13,7 +13,7 @@ from apps.properties.repositories import DjangoPostRepository
 from apps.properties.repositories import PhotoRepository
 from apps.ai_analysis.attribute_storage import HomeMatchAttributeStorage
 
-from apps.ai_analysis.strategies import HomeMatchAIAnalyzer
+from apps.ai_analysis.strategy import HomeMatchAIAnalyzer
 from apps.properties.strategies import HomeMatchMatchScoreStrategy
 from apps.search.strategies import HomeMatchSearchPool
 

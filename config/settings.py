@@ -78,8 +78,8 @@ DATABASES = {
         "NAME": config("DB_NAME"),
         "USER": config("DB_USER"),
         "PASSWORD": config("DB_PASSWORD"),
-        "HOST": config("DB_HOST"),
-        "PORT": config("DB_PORT"),
+        "HOST": config("DB_HOST", default="localhost").split()[0],
+        "PORT": config("DB_PORT", default="5432"),
         # Configuração do banco de dados de testes. Durante a execução dos testes,
         # o Django criará automaticamente um banco com este nome.
         "TEST": {
