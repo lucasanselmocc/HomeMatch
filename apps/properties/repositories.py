@@ -102,7 +102,23 @@ class PhotoRepository(AbstractPhotoRepository):
     No domínio imobiliário, uma foto pertence a um imóvel.
     """
 
-    def create_photo(self, *, post: Any, image: Any, order: int) -> Any:
+    def create_photo(
+        self,
+        *,
+        post: Any,
+        image: Any,
+        order: int | None = None,
+        validated_data: dict | None = None,
+    ) -> Any:
+        """
+        Cria uma foto associada a um imóvel.
+
+        O framework chama o repositório com ``validated_data``. A aplicação
+        imobiliária antiga chamava com ``order``. A assinatura aceita os dois
+        formatos para manter compatibilidade.
+        """
+        validated_data = validated_data or {}
+        order = order if order is not None else validated_data.get("order", 1)
         r2_key = upload_to_cloud(image)
 
         try:

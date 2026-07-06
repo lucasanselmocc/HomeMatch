@@ -38,6 +38,26 @@ services:
       db:
         condition: service_healthy
 
+  makeup_api:
+    build: .
+    command: uvicorn framework.instances.makeup.api:api --host 0.0.0.0 --port 8003 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8003:8003"
+    env_file:
+      - .env
+
+  dating_api:
+    build: .
+    command: uvicorn framework.instances.dating.api:api --host 0.0.0.0 --port 8002 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env
+
   celery_worker:
     build: .
     command: celery -A config worker -l info

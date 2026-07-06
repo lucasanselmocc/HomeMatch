@@ -17,3 +17,5 @@ google-generativeai
 channels
 channels-redis
 daphne
+fastapi
+uvicorn[standard]

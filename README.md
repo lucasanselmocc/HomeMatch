@@ -288,7 +288,7 @@ Supported objective filters for `/api/properties/` and expected for `/api/search
 ### 1. Clone
 
 ```bash
-git clone https://github.com/DevlTz/HomeMatch.git
+git clone https://github.com/lucasanselmocc/HomeMatch.git
 cd HomeMatch
 ```
 
@@ -453,3 +453,71 @@ pip install -r tools/requirements-dev.txt
 ---
 
 Software Engineering course project @UFRN
+
+---
+
+## Como rodar uma instância por vez
+
+Para gravar os vídeos da apresentação, rode uma instância por vez. O guia completo está em `docs/como_rodar_instancias.md`.
+
+### Real Estate / Imobiliária
+
+Aplicação Django principal:
+
+```bash
+docker compose up --build web
+```
+
+Acesse:
+
+```txt
+http://localhost:8000
+```
+
+### Makeup
+
+Instância FastAPI da maquiagem:
+
+```bash
+uvicorn framework.instances.makeup.api:api --reload --port 8003
+```
+
+ou pelo Docker:
+
+```bash
+docker compose up --build makeup_api
+```
+
+Acesse:
+
+```txt
+http://localhost:8003
+```
+
+### Dating / Relacionamentos
+
+Instância FastAPI de relacionamentos:
+
+```bash
+uvicorn framework.instances.dating.api:api --reload --port 8002
+```
+
+ou pelo Docker:
+
+```bash
+docker compose up --build dating_api
+```
+
+Acesse:
+
+```txt
+http://localhost:8002
+```
+
+### Demo geral do framework
+
+```bash
+python -m framework.instances.demo
+```
+
+Esse comando executa uma demonstração textual das instâncias Dating, Makeup e Real Estate.

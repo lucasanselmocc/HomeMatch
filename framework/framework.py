@@ -27,7 +27,9 @@ from framework.use_cases.update_post_use_case import UpdatePostUseCase
 from framework.use_cases.delete_post_use_case import DeletePostUseCase
 from framework.use_cases.get_post_use_case import GetPostByIdUseCase
 from framework.use_cases.list_post_use_case import ListPostsUseCase
-from framework.use_cases.get_post_attributes_use_case import GetPostAttributesUseCase
+from framework.use_cases.get_post_attributes_use_case import (
+    GetPostAttributesUseCase,
+)
 
 from framework.use_cases.upload_photo_use_case import UploadPostPhotoUseCase
 from framework.use_cases.delete_photo_use_case import DeletePostPhotoUseCase
@@ -36,7 +38,9 @@ from framework.use_cases.list_photos_use_case import ListPostPhotosUseCase
 
 from framework.use_cases.analyze_photo_use_case import AnalyzePhotoUseCase
 from framework.use_cases.analyze_post_use_case import AnalyzePostUseCase
-from framework.use_cases.calc_match_score_use_case import CalculateMatchScoreUseCase
+from framework.use_cases.calc_match_score_use_case import (
+    CalculateMatchScoreUseCase,
+)
 from framework.use_cases.search_post_use_case import SearchPostsUseCase
 
 
@@ -59,6 +63,7 @@ class HomeMatchFramework:
         ai_analyzer,
         match_score_strategy,
         search_pool,
+        query_interpreter=None,
     ) -> None:
         """
         Inicializa o framework com os pontos variáveis concretos.
@@ -67,10 +72,15 @@ class HomeMatchFramework:
         self.user_repository = user_repository
         self.post_repository = post_repository
         self.photo_repository = photo_repository
+
         self.attribute_storage = attribute_storage
+
         self.ai_analyzer = ai_analyzer
+
         self.match_score_strategy = match_score_strategy
+
         self.search_pool = search_pool
+        self.query_interpreter = query_interpreter
 
         self.users = self._build_user_service()
         self.posts = self._build_post_service()
@@ -101,17 +111,28 @@ class HomeMatchFramework:
             delete_post_use_case=DeletePostUseCase(self.post_repository),
             get_post_use_case=GetPostByIdUseCase(self.post_repository),
             list_post_use_case=ListPostsUseCase(self.post_repository),
-            get_post_attributes_use_case=GetPostAttributesUseCase(self.attribute_storage))
+            get_post_attributes_use_case=GetPostAttributesUseCase(
+                self.attribute_storage
+            ),
+        )
 
     def _build_photo_service(self) -> PhotoService:
         """
         Monta o service de fotos.
         """
         return PhotoService(
-            upload_photo_use_case=UploadPostPhotoUseCase(self.photo_repository),
-            delete_photo_use_case=DeletePostPhotoUseCase(self.photo_repository),
-            get_photo_use_case=GetPhotoByIdUseCase(self.photo_repository),
-            list_photos_use_case=ListPostPhotosUseCase(self.photo_repository),
+            upload_photo_use_case=UploadPostPhotoUseCase(
+                self.photo_repository
+            ),
+            delete_photo_use_case=DeletePostPhotoUseCase(
+                self.photo_repository
+            ),
+            get_photo_use_case=GetPhotoByIdUseCase(
+                self.photo_repository
+            ),
+            list_photos_use_case=ListPostPhotosUseCase(
+                self.photo_repository
+            ),
         )
 
     def _build_analyzer_service(self) -> AnalyzerService:
@@ -145,7 +166,8 @@ class HomeMatchFramework:
         """
         return SearchService(
             search_post_use_case=SearchPostsUseCase(
-                self.post_repository,
-                self.search_pool,
+                post_repository=self.post_repository,
+                search_pool=self.search_pool,
+                query_interpreter=self.query_interpreter,
             )
         )

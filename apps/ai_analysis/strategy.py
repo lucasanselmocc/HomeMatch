@@ -45,7 +45,7 @@ class HomeMatchAIAnalyzer(AbstractAIAnalyzer):
             model=model,
         )
 
-    def analyze_photo(self, *, photo: Any, prompt: str) -> list[dict]:
+    def analyze_photo(self, photo: Any, prompt: str | None = None) -> list[dict]:
         """
         Analisa uma foto e retorna os atributos extraídos pela IA.
         """
