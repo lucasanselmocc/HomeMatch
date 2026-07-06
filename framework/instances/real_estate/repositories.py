@@ -71,12 +71,6 @@ class RealEstateUserRepository(AbstractUserRepository):
     def list_users(self) -> list[Any]:
         return self._repository.list_users()
 
-    def delete_user(self, user: Any) -> None:
-        return _DjangoUserRepo.delete_user(user)
-
-    def list_users(self) -> list[Any]:
-        return _DjangoUserRepo.list_users()
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Ponto flexível 7 — Repositório de postagens (imóveis)

@@ -53,7 +53,7 @@ class RealEstateAIAnalyzer(AbstractAIAnalyzer):
 
     # ── AbstractAIAnalyzer interface ──────────────────────────────────────────
 
-    def analyze_photo(self, photo: Any, prompt: str) -> List[Dict[str, Any]]:
+    def analyze_photo(self, photo: Any, prompt: str | None = None) -> List[Dict[str, Any]]:
         """
         Analisa uma foto de imóvel com o módulo padrão de visão do framework.
 

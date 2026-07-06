@@ -102,7 +102,14 @@ class PhotoRepository(AbstractPhotoRepository):
     No domínio imobiliário, uma foto pertence a um imóvel.
     """
 
-    def create_photo(self, *, post: Any, image: Any, order: int) -> Any:
+    def create_photo(
+        self,
+        *,
+        post: Any,
+        image: Any,
+        validated_data: dict | None = None,
+    ) -> Any:
+        order = (validated_data or {}).get("order", 0)
         r2_key = upload_to_cloud(image)
 
         try:

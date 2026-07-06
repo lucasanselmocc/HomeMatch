@@ -36,31 +36,31 @@ class HomeMatchMatchScoreStrategy(AbstractMatchScoreStrategy):
         "max_price": {"max_price"},
     }
 
-    def calculate(
-        self,
-        *,
-        target: Any,
-        user: Any,
-        query_params: dict | None = None,
-    ) -> int:
+    def calculate(self, user: Any, posts: list[Any]) -> list[tuple[Any, int]]:
         """
-        Calcula o match-score entre um usuário e um imóvel.
+        Calcula o match-score entre um usuário e uma lista de imóveis.
         """
+        scores: list[tuple[Any, int]] = []
+
         try:
             preferences = user.preferences
         except ObjectDoesNotExist:
             preferences = None
 
-        current_filters = self._current_filters(query_params)
-        ignored_score_fields = self._ignored_score_fields(current_filters.keys())
         favorite_profile = self._favorite_profile(user)
 
-        return self._calculate_match_score(
-            target,
-            preferences=preferences,
-            ignored_score_fields=ignored_score_fields,
-            favorite_profile=favorite_profile,
-        )
+        for target in posts:
+            current_filters = self._current_filters(None)
+            ignored_score_fields = self._ignored_score_fields(current_filters.keys())
+            score = self._calculate_match_score(
+                target,
+                preferences=preferences,
+                ignored_score_fields=ignored_score_fields,
+                favorite_profile=favorite_profile,
+            )
+            scores.append((target, score))
+
+        return scores
 
     def rank(
         self,
@@ -72,14 +72,34 @@ class HomeMatchMatchScoreStrategy(AbstractMatchScoreStrategy):
         """
         Calcula o match-score de uma lista de imóveis e ordena pelo maior score.
         """
+        try:
+            preferences = user.preferences
+        except ObjectDoesNotExist:
+            preferences = None
+
+        favorite_profile = self._favorite_profile(user)
+        current_filters = self._current_filters(query_params)
+        ignored_score_fields = self._ignored_score_fields(current_filters.keys())
+
         for target in targets:
-            target.match_score = self.calculate(
-                target=target,
-                user=user,
-                query_params=query_params,
+            target.match_score = self._calculate_match_score(
+                target,
+                preferences=preferences,
+                ignored_score_fields=ignored_score_fields,
+                favorite_profile=favorite_profile,
             )
 
         return sorted(targets, key=lambda item: item.match_score, reverse=True)
+
+    def persist(self, user: Any, scores: list[tuple[Any, int]]) -> None:
+        """
+        Persistência de scores é opcional neste domínio.
+
+        O framework exige o método, mas a versão atual armazena o
+        resultado em memória como anotação no objeto de propriedade.
+        """
+        for post, score in scores:
+            post.match_score = score
 
     def _calculate_match_score(
         self,
