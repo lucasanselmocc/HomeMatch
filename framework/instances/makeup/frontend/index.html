@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>MakeupMatch</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>MakeupMatch</h1>
+    <p>Busca e recomendação de maquiagens usando o HomeMatch Framework</p>
+  </header>
+
+  <main>
+    <nav class="tabs">
+      <button onclick="showTab('account')" class="active">Criar conta</button>
+      <button onclick="showTab('search')">Pesquisar produtos</button>
+    </nav>
+
+    <section id="account" class="tab active">
+      <h2>Criar perfil</h2>
+
+      <input id="email" placeholder="E-mail" value="bia@email.com" />
+      <input id="name" placeholder="Nome" value="Bia" />
+      <input id="skinType" placeholder="Tipo de pele" value="oleosa" />
+      <input id="finish" placeholder="Acabamento preferido" value="natural" />
+      <input id="maxPrice" type="number" placeholder="Preço máximo" value="80" />
+
+      <button onclick="createUser()">Criar / atualizar perfil</button>
+
+      <div id="profileResult"></div>
+    </section>
+
+    <section id="search" class="tab">
+      <h2>Pesquisar maquiagens</h2>
+
+      <input
+        id="query"
+        placeholder="Digite sua busca"
+        value="base para pele oleosa acabamento natural"
+      />
+
+      <div class="suggestions">
+        <button onclick="setQuery('base para pele oleosa acabamento natural')">
+          Base pele oleosa natural
+        </button>
+        <button onclick="setQuery('batom vermelho matte para noite')">
+          Batom vermelho noite
+        </button>
+        <button onclick="setQuery('corretivo para olheiras acabamento natural')">
+          Corretivo olheiras
+        </button>
+        <button onclick="setQuery('base matte alta cobertura')">
+          Base matte cobertura
+        </button>
+      </div>
+
+      <button onclick="searchProducts()">Buscar</button>
+
+      <div id="results"></div>
+    </section>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

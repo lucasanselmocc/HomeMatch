@@ -7,11 +7,17 @@ Demonstração de reutilização do framework nas instâncias Dating e Makeup.
 from framework.instances.dating.app import create_dating_app
 from framework.instances.makeup.app import create_makeup_app
 
+from framework.instances.dating.strategies.ai_analyzer import DatingAIAnalyzer
+from framework.instances.makeup.strategies.ai_analyzer import MakeupAIAnalyzer
+
 
 def run_dating_demo():
     print("\n=== Dating App ===")
 
-    app = create_dating_app()
+    app = create_dating_app(
+        ai_analyzer=DatingAIAnalyzer(),
+        query_interpreter=None,
+    )
 
     user = app.users.create_user(
         email="ana@email.com",
@@ -50,9 +56,9 @@ def run_dating_demo():
     )
 
     scores = app.match_score.calculate_match_score(
-    user=user,
-    posts=[profile],
-)
+        user=user,
+        posts=[profile],
+    )
 
     print("Usuário:", user)
     print("Perfil criado:", profile)
@@ -65,7 +71,10 @@ def run_dating_demo():
 def run_makeup_demo():
     print("\n=== Makeup App ===")
 
-    app = create_makeup_app()
+    app = create_makeup_app(
+        ai_analyzer=MakeupAIAnalyzer(),
+        query_interpreter=None,
+    )
 
     user = app.users.create_user(
         email="bia@email.com",
@@ -108,9 +117,9 @@ def run_makeup_demo():
     )
 
     scores = app.match_score.calculate_match_score(
-    user=user,
-    posts=[product],
-)
+        user=user,
+        posts=[product],
+    )
 
     print("Usuário:", user)
     print("Produto criado:", product)
@@ -121,5 +130,5 @@ def run_makeup_demo():
 
 
 if __name__ == "__main__":
-    run_dating_demo()
+    #run_dating_demo()
     run_makeup_demo()

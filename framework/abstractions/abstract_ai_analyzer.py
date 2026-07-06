@@ -1,50 +1,80 @@
 """
 framework/abstract_ai_analyzer.py
 ──────────────────────────────────
-Ponto flexível 2: define a lógica de análise de imagens/fotos da instância.
+Ponto flexível 2: define o mecanismo de análise de imagens utilizado pela
+instância.
 
-O usuário do framework PODE:
-  - usar o módulo padrão (AiVisionClient + AiAttributeParser) sem alterar nada, OU
-  - estender esta classe para fornecer uma lógica de análise própria.
+O framework fornece uma implementação padrão baseada no Gemini
+(GeminiAIAnalyzer), responsável por:
 
-PONTO FIXO: AiVisionClient e AiAttributeParser são implementações concretas
-            fornecidas pelo framework e não precisam ser reimplementadas.
-            A orquestração em AiAnalysisService também é fixa.
+    • enviar a imagem para o modelo;
+    • utilizar o prompt e o schema definidos pela instância;
+    • interpretar a resposta.
+
+Caso desejado, a aplicação pode fornecer outra implementação
+(ex.: OpenAI, modelo local, regras heurísticas etc.).
 """
 
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
 
 class AbstractAIAnalyzer(ABC):
     """
-    Contrato para a camada de análise de imagens de uma instância HomeMatch.
+    Contrato para mecanismos de análise de imagens.
 
-    Uma implementação mínima precisa apenas de analyze_photo().
-    analyze_post() tem uma implementação padrão que itera sobre as fotos.
+    Uma implementação concreta deve apenas saber analisar
+    uma foto e retornar atributos valorados.
     """
 
     @abstractmethod
-    def analyze_photo(self, photo: Any, prompt: str) -> List[Dict[str, Any]]:
+    def analyze_photo(
+        self,
+        photo: Any,
+        prompt: str | None = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Analisa uma única foto e retorna lista de atributos valorados.
+        Analisa uma única foto.
 
         Retorno esperado:
-            [{"attribute_token": "interests.sports", "strength": 0.85}, ...]
 
-        :param photo:  objeto de foto (deve ter pelo menos .pk e .post/property)
-        :param prompt: instrução textual enviada ao modelo de visão
+        [
+            {
+                "attribute_token": "...",
+                "strength": 0.85
+            }
+        ]
+
+        O parâmetro ``prompt`` é opcional. Quando não informado,
+        a implementação pode utilizar um prompt padrão definido
+        por sua configuração.
         """
         raise NotImplementedError
 
-    def analyze_post(self, post: Any, prompt: str) -> List[Dict[str, Any]]:
+    def analyze_post(
+        self,
+        post: Any,
+        prompt: str | None = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Analisa todas as fotos de uma postagem.
-        Implementação padrão — pode ser sobrescrita pela instância.
+        Implementação padrão: analisa todas as fotos da postagem.
         """
+
         results: list[dict] = []
+
         for photo in post.photos.all():
-            attributes = self.analyze_photo(photo, prompt)
-            results.append({"photo_id": photo.pk, "attributes": attributes})
+            attributes = self.analyze_photo(
+                photo=photo,
+                prompt=prompt,
+            )
+
+            results.append(
+                {
+                    "photo_id": photo.pk,
+                    "attributes": attributes,
+                }
+            )
+
         return results
