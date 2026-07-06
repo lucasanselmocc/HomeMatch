@@ -1,6 +1,6 @@
 """
-examples/makeup/strategies/ai_analyzer.py
-────────────────────────────────────────
+framework/instances/makeup/strategies/ai_analyzer.py
+────────────────────────────────────────────────────
 Strategy concreta de análise por IA para a instância Makeup.
 """
 
@@ -12,11 +12,9 @@ from framework.abstractions.abstract_ai_analyzer import AbstractAIAnalyzer
 
 
 class MakeupAIAnalyzer(AbstractAIAnalyzer):
-    """
-    Analisador fictício para imagens de produtos de maquiagem.
-    """
+    """Analisador demonstrativo para imagens de produtos de maquiagem."""
 
-    def analyze_photo(self, *, photo: Any, prompt: str) -> list[dict]:
+    def analyze_photo(self, photo: Any, prompt: str | None = None) -> list[dict]:
         return [
             {"attribute_token": "finish.glow", "strength": 0.8},
             {"attribute_token": "texture.creamy", "strength": 0.7},

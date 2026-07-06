@@ -1,6 +1,6 @@
 """
-examples/dating/strategies/ai_analyzer.py
-─────────────────────────────────────────
+framework/instances/dating/strategies/ai_analyzer.py
+────────────────────────────────────────────────────
 Strategy concreta de análise por IA para a instância Dating.
 """
 
@@ -12,11 +12,9 @@ from framework.abstractions.abstract_ai_analyzer import AbstractAIAnalyzer
 
 
 class DatingAIAnalyzer(AbstractAIAnalyzer):
-    """
-    Analisador fictício para perfis de encontros.
-    """
+    """Analisador demonstrativo para perfis de encontros."""
 
-    def analyze_photo(self, *, photo: Any, prompt: str) -> list[dict]:
+    def analyze_photo(self, photo: Any, prompt: str | None = None) -> list[dict]:
         return [
             {"attribute_token": "lifestyle.outdoor", "strength": 0.8},
             {"attribute_token": "personality.casual", "strength": 0.7},
