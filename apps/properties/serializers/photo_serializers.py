@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.ai_analysis.models import PhotoSubjectiveAttribute
 from apps.properties.models import PropertiesPhotos
 from apps.properties.services import CloudService
-from apps.properties.use_cases import PhotoUseCase
+from apps.properties.strategies import PhotoUseCase
 
 
 class PropertiesUploadPhotosSerializer(serializers.ModelSerializer):

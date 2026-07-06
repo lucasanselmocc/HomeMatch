@@ -2,7 +2,7 @@ from rest_framework import serializers
 from apps.properties.models import Condo, Properties, Rooms, RoomsExtras, NearbyPlaces
 from apps.properties.validators import validate_positive_number, validate_required_field
 from apps.properties.serializers.photo_serializers import PropertiesPhotosSerializer
-from apps.properties.use_cases import PropertyUseCase, ReviewUseCase
+from apps.properties.strategies import PropertyUseCase, ReviewUseCase
 from apps.ai_analysis.models import PropertySubjectiveAttribute
 
 

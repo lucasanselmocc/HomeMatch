@@ -44,3 +44,19 @@ class AbstractPostRepository(ABC):
         Implementação padrão retorna None; sobrescreva conforme o modelo.
         """
         return None
+    
+
+    @abstractmethod
+    def delete_post(self, post: Any) -> None:
+        """
+        Remove ou desativa uma postagem existente.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def filter_posts(self, criteria: dict) -> list[Any]:
+        """
+        Retorna as postagens que atendem aos filtros estruturados.
+        """ 
+
+        raise NotImplementedError

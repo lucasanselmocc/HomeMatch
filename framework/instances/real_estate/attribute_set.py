@@ -9,7 +9,7 @@ Estende AbstractAttributeSet com os tokens definidos em apps/ai_analysis/schema.
 from __future__ import annotations
 from typing import List
 
-from framework.abstract_attribute_set import AbstractAttributeSet
+from framework.abstractions.abstract_attribute_set import AbstractAttributeSet
 
 
 class RealEstateAttributeSet(AbstractAttributeSet):

@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -13,6 +14,14 @@ class AnalyzePropertyRequestSerializer(serializers.Serializer):
 
 
 class AnalyzePropertyView(APIView):
+    """
+    Endpoint responsável por solicitar a análise de IA de um imóvel.
+
+    A análise é executada de forma assíncrona por uma task do Celery,
+    que utiliza o framework para processar as fotos e atualizar
+    os atributos subjetivos.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
@@ -20,6 +29,7 @@ class AnalyzePropertyView(APIView):
         serializer.is_valid(raise_exception=True)
 
         property_obj = get_object_or_404(Properties, pk=pk)
+
         task = analyze_property_task.delay(
             property_obj.id,
             serializer.validated_data["prompt"],

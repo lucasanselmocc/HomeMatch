@@ -1,7 +1,7 @@
 from apps.properties.validators import validate_rating, validate_comment_length
 from rest_framework import serializers
 from apps.properties.models import Reviews
-from apps.properties.use_cases import ReviewUseCase
+from apps.properties.strategies import ReviewUseCase
 
 class ReviewsSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source="user.name", read_only=True)

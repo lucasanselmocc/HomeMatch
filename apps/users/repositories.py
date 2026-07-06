@@ -1,12 +1,28 @@
+from __future__ import annotations
+
+from typing import Any, Optional
+
 from django.shortcuts import get_object_or_404
+
+from framework.abstractions.abstract_user_repository import AbstractUserRepository
 
 from apps.properties.models import Properties
 from apps.users.models import SearchPreference, User
 
 
-class UserRepository:
-    @staticmethod
-    def create_user(*, email, name, user_type, password):
+class UserRepository(AbstractUserRepository):
+    """
+    Repositório concreto de usuários do HomeMatch usando o ORM do Django.
+    """
+
+    def create_user(
+        self,
+        *,
+        email: str,
+        name: str,
+        user_type: str,
+        password: str,
+    ) -> Any:
         return User.objects.create_user(
             email=email,
             name=name,
@@ -14,20 +30,30 @@ class UserRepository:
             password=password,
         )
 
-    @staticmethod
-    def email_exists(email):
+    def email_exists(self, email: str) -> bool:
         return User.objects.filter(email=email).exists()
 
-    @staticmethod
-    def save_user(user):
+    def save_user(self, user: Any) -> Any:
         user.save()
         return user
+
+    def get_by_email(self, email: str) -> Optional[Any]:
+        return User.objects.filter(email=email).first()
+
+    def delete_user(self, user: Any) -> None:
+        user.delete()
+
+    def list_users(self) -> list[Any]:
+        return list(User.objects.all())
 
 
 class SearchPreferenceRepository:
     @staticmethod
     def upsert_for_user(user, preferences_data):
-        SearchPreference.objects.update_or_create(user=user, defaults=preferences_data)
+        SearchPreference.objects.update_or_create(
+            user=user,
+            defaults=preferences_data,
+        )
 
 
 class FavoriteRepository:

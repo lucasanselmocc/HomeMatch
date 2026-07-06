@@ -4,47 +4,94 @@ from apps.properties.models import Condo, Properties, PropertiesPhotos, Reviews,
 from apps.properties.services import delete_from_cloud, upload_to_cloud
 
 
-class PropertyRepository:
-    @staticmethod
-    def get_or_create_rooms(rooms_data):
-        return Rooms.objects.get_or_create(**rooms_data)
+from __future__ import annotations
 
-    @staticmethod
-    def get_or_create_rooms_extras(rooms_extras_data):
-        return RoomsExtras.objects.get_or_create(**rooms_extras_data)
+from typing import Any, Optional
 
-    @staticmethod
-    def get_or_create_condo(condo_data):
-        return Condo.objects.get_or_create(**condo_data)
+from django.db.models import Avg, Count
+from django.shortcuts import get_object_or_404
 
-    @staticmethod
-    def create_property(*, rooms, rooms_extras, condo, validated_data):
-        # Properties.embedding is NOT NULL in the model, but the write serializer
-        # excludes it from user input. Give new properties a safe default.
+from framework.abstractions.abstract_post_repository import AbstractPostRepository
+from framework.abstractions.abstract_photo_repository import AbstractPhotoRepository
+
+from apps.properties.models import (
+    Condo,
+    Properties,
+    PropertiesPhotos,
+    Reviews,
+    Rooms,
+    RoomsExtras,
+)
+from apps.properties.services import delete_from_cloud, upload_to_cloud
+
+
+class PropertyRepository(AbstractPostRepository):
+    """
+    Repositório concreto de postagens do HomeMatch.
+
+    No domínio imobiliário, uma postagem do framework corresponde
+    a um imóvel cadastrado no Django.
+    """
+
+    def create_post(self, *, owner: Any, validated_data: dict) -> Any:
+        rooms_data = validated_data.pop("rooms")
+        rooms_extras_data = validated_data.pop("rooms_extras")
+        condo_data = validated_data.pop("condo", None)
+
+        rooms, _ = Rooms.objects.get_or_create(**rooms_data)
+        rooms_extras, _ = RoomsExtras.objects.get_or_create(**rooms_extras_data)
+        condo = None
+
+        if condo_data:
+            condo, _ = Condo.objects.get_or_create(**condo_data)
+
         validated_data.setdefault("embedding", "[]")
 
         return Properties.objects.create(
+            owner=owner,
             rooms=rooms,
             rooms_extras=rooms_extras,
             condo=condo,
             **validated_data,
         )
 
-    @staticmethod
-    def update_condo(current_condo, condo_data):
-        return Condo.objects.update_or_create(
-            id=current_condo.id if current_condo else None,
-            defaults=condo_data,
-        )
+    def update_post(self, *, post: Any, validated_data: dict) -> Any:
+        rooms_data = validated_data.pop("rooms", None)
+        rooms_extras_data = validated_data.pop("rooms_extras", None)
+        condo_data = validated_data.pop("condo", None)
 
-    @staticmethod
-    def save_model(instance):
-        instance.save()
-        return instance
+        if rooms_data:
+            rooms, _ = Rooms.objects.get_or_create(**rooms_data)
+            post.rooms = rooms
 
-    @staticmethod
-    def list_properties_with_order():
-        return (
+        if rooms_extras_data:
+            rooms_extras, _ = RoomsExtras.objects.get_or_create(**rooms_extras_data)
+            post.rooms_extras = rooms_extras
+
+        if condo_data:
+            condo, _ = Condo.objects.update_or_create(
+                id=post.condo.id if post.condo else None,
+                defaults=condo_data,
+            )
+            post.condo = condo
+
+        for field, value in validated_data.items():
+            setattr(post, field, value)
+
+        post.save()
+        return post
+
+    def delete_post(self, post: Any) -> None:
+        post.delete()
+
+    def get_by_id(self, post_id: int) -> Optional[Any]:
+        return Properties.objects.filter(id=post_id).first()
+
+    def get_or_404(self, post_id: int) -> Any:
+        return get_object_or_404(Properties, id=post_id)
+
+    def list_posts(self) -> list[Any]:
+        return list(
             Properties.objects.select_related("rooms", "rooms_extras", "condo", "owner")
             .prefetch_related("photos", "nearby_places")
             .annotate(
@@ -54,32 +101,51 @@ class PropertyRepository:
             .order_by("created_at")
         )
 
+    def save_post(self, post: Any) -> Any:
+        post.save()
+        return post
+class PhotoRepository(AbstractPhotoRepository):
+    """
+    Repositório concreto de fotos do HomeMatch.
 
-class PhotoRepository:
-    @staticmethod
-    def create_photo(*, property_obj, image, order):
-        """Upload image to cloud then persist the record.
+    No domínio imobiliário, uma foto pertence a um imóvel.
+    """
 
-        If the DB insert fails after a successful upload, the orphaned cloud
-        object is deleted so storage and database stay consistent.
-        """
+    def create_photo(self, *, post: Any, image: Any, order: int) -> Any:
         r2_key = upload_to_cloud(image)
+
         try:
             return PropertiesPhotos.objects.create(
-                property=property_obj, r2_key=r2_key, order=order
+                property=post,
+                r2_key=r2_key,
+                order=order,
             )
         except Exception:
-            # Best-effort cleanup
             delete_from_cloud(r2_key)
             raise
 
-    @staticmethod
-    def replace_photo_image(instance, new_image):
-        delete_from_cloud(instance.r2_key)
-        instance.r2_key = upload_to_cloud(new_image)
-        instance.save()
-        return instance
+    def get_by_id(self, photo_id: int) -> Optional[Any]:
+        return PropertiesPhotos.objects.filter(id=photo_id).first()
 
+    def delete_photo(self, photo: Any) -> None:
+        delete_from_cloud(photo.r2_key)
+        photo.delete()
+
+    def list_by_post(self, post: Any) -> list[Any]:
+        return list(PropertiesPhotos.objects.filter(property=post).order_by("order"))
+
+    def save_photo(self, photo: Any) -> Any:
+        photo.save()
+        return photo
+
+    def replace_photo_image(self, photo: Any, new_image: Any) -> Any:
+        delete_from_cloud(photo.r2_key)
+        photo.r2_key = upload_to_cloud(new_image)
+        photo.save()
+        return photo
+    
+    def filter_posts(self, criteria):
+        return SearchRepository.filter_properties(criteria)
 
 class ReviewRepository:
     @staticmethod

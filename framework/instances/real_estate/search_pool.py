@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any, List
 
 from apps.search.embeddings import EmbeddingService
-from framework.abstract_search_pool import AbstractSearchPool
+from framework.abstractions.abstract_search_pool import AbstractSearchPool
 from framework.instances.real_estate.attribute_set import RealEstateAttributeSet
 
 

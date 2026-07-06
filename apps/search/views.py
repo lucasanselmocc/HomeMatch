@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from apps.properties.serializers.property_serializers import PropertiesReadSerializer
 from apps.search.serializers import NaturalSearchRequestSerializer
-from apps.search.services import NaturalSearchService
+from config.homematch_framework import get_homematch_framework
 
 
 class SearchNaturalView(APIView):
@@ -14,18 +14,19 @@ class SearchNaturalView(APIView):
         serializer = NaturalSearchRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        search_result = NaturalSearchService.search(
-            serializer.validated_data["query"]
+        results = get_homematch_framework().search.search_posts(
+            query=serializer.validated_data["query"],
         )
+
         results_serializer = PropertiesReadSerializer(
-            search_result["results"],
+            results,
             many=True,
             context={"request": request},
         )
 
         return Response(
             {
-                "interpreted_filters": search_result["interpreted_filters"],
+                "query": serializer.validated_data["query"],
                 "results": results_serializer.data,
             }
         )

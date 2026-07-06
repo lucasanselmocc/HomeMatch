@@ -17,8 +17,8 @@ from typing import Any, List, Optional
 from apps.properties.models import Properties
 from apps.properties.repositories import PropertyRepository
 from apps.users.repositories import UserRepository as _DjangoUserRepo
-from framework.abstract_post_repository import AbstractPostRepository
-from framework.abstract_user_repository import AbstractUserRepository
+from framework.abstractions.abstract_post_repository import AbstractPostRepository
+from framework.abstractions.abstract_user_repository import AbstractUserRepository
 
 
 # ─────────────────────────────────────────────────────────────────────────────
