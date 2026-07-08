@@ -5,7 +5,7 @@ Strategy concreta de análise por IA para a instância Makeup.
 
 Delega para GeminiAIAnalyzer, em framework/ai/ 
 configurado com o prompt/schema específico da instância
-(DatingPhotoAnalysisConfig). Nenhuma lógica de chamada à API é duplicada
+(MakeupPhotoAnalysisConfig). Nenhuma lógica de chamada à API é duplicada
 aqui, já que o ponto fixo do framework cuida disso.
 
 """

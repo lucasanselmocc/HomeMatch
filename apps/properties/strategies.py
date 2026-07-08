@@ -316,16 +316,6 @@ class HomeMatchMatchScoreStrategy(AbstractMatchScoreStrategy):
 
         return counter.most_common(1)[0][0]
 
-    def persist(self, user: Any, scores: list[tuple[Any, int]]) -> None:
-        """
-        Persistência de scores é opcional neste domínio.
-
-        O framework exige o método, mas a versão atual armazena o
-        resultado em memória como anotação no objeto de propriedade.
-        """
-        for post, score in scores:
-            post.match_score = score
-
 
 class PropertyUseCase:
     @staticmethod
