@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DatingMatch | Criar perfil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="page page-profile">
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">DM</span>
+        <span class="brand-text">DatingMatch</span>
+      </a>
+      <nav class="navbar__links">
+        <a href="/">Início</a>
+        <a class="active" href="/perfil.html">Criar perfil</a>
+        <a href="/descobrir.html">Descobrir</a>
+        <a href="/matches.html">Matches</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="page-intro">
+      <span class="kicker">Etapa 1 de 3</span>
+      <h1>Monte seu perfil de relacionamento.</h1>
+      <p class="lead">
+        Esses dados alimentam a estratégia de compatibilidade da instância Dating.
+        Depois de salvar, você segue para a tela de descoberta.
+      </p>
+    </section>
+
+    <section class="profile-layout">
+      <form class="form-card profile-form" id="profile-form">
+        <label>E-mail<input id="email" type="email" value="lucas@email.com" required /></label>
+        <label>Nome<input id="name" type="text" value="Lucas" required /></label>
+        <label>Idade<input id="age" type="number" value="23" min="18" required /></label>
+        <label>Cidade<input id="city" type="text" value="Natal" required /></label>
+        <label>Foto de perfil
+          <input id="photo" type="file" accept="image/*" />
+          <small class="field-help">Escolha uma imagem para deixar o perfil mais realista na apresentação.</small>
+        </label>
+        <label>Bio<textarea id="bio" rows="3" required>Gosto de praia, filmes, tecnologia e rolês tranquilos.</textarea></label>
+        <label>Interesses<input id="interests" type="text" value="praia, esportes, filmes, tecnologia" required /></label>
+        <label>Hobbies<input id="hobbies" type="text" value="cinema, caminhada, jogos" required /></label>
+        <label>Preferências<input id="preferences" type="text" value="conversa leve, atividades ao ar livre" required /></label>
+        <label>Estilo de vida<input id="lifestyle" type="text" value="ao ar livre" required /></label>
+        <button class="btn btn--block" type="submit">Salvar e descobrir perfis</button>
+        <div id="profile-status" class="status"></div>
+      </form>
+
+      <aside class="profile-preview-card" id="profile-preview-card">
+        <span class="profile-badge">Seu perfil</span>
+        <h2 id="preview-name">Lucas, 23</h2>
+        <p id="preview-bio">Praia, tecnologia, filmes e rolês tranquilos.</p>
+        <div class="profile-tags" id="preview-tags">
+          <span>Natal</span>
+          <span>ao ar livre</span>
+          <span>filmes</span>
+          <span>tecnologia</span>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

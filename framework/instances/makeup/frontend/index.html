@@ -3,54 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MakeupMatch | Busca inteligente</title>
+  <title>MakeupMatch | Início</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
-<body>
+<body class="page page-home">
   <header class="navbar">
     <div class="navbar__inner">
-      <a class="brand" href="#home" aria-label="MakeupMatch">
+      <a class="brand" href="/">
         <span class="brand-mark">MM</span>
         <span class="brand-text">MakeupMatch</span>
       </a>
       <nav class="navbar__links">
-        <a href="#home">Início</a>
-        <a href="#perfil">Perfil</a>
-        <a href="#busca">Buscar</a>
+        <a class="active" href="/">Início</a>
+        <a href="/perfil.html">Perfil</a>
+        <a href="/buscar.html">Buscar</a>
+        <a href="/recomendacoes.html">Recomendações</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="container hero" id="home">
-      <div>
-        <span class="kicker">Instância Makeup do framework</span>
+    <section class="beauty-hero">
+      <div class="beauty-hero__content">
+        <span class="kicker">Instância Makeup do framework HomeMatch</span>
         <h1>Encontre maquiagens compatíveis com seu perfil.</h1>
-        <p class="lead">Crie um perfil simples, pesquise em linguagem natural e veja produtos ranqueados pela busca e pelo match-score.</p>
+        <p class="lead">
+          Crie seu perfil de beleza, pesquise em linguagem natural e veja produtos
+          ranqueados por tipo de pele, acabamento, preço e match-score.
+        </p>
+
         <form class="search-card" id="hero-search">
-          <input id="hero-query" type="text" value="base para pele oleosa acabamento natural" autocomplete="off" />
+          <input id="hero-query" type="text" value="base para pele oleosa acabamento natural" />
           <button class="btn" type="submit">Buscar</button>
         </form>
+
         <div class="hero__actions">
-          <a class="btn btn--secondary" href="#perfil">Criar perfil</a>
-          <a class="btn btn--ghost" href="#busca">Ver produtos</a>
+          <a class="btn" href="/perfil.html">Criar perfil</a>
+          <a class="btn btn--ghost" href="/buscar.html">Ver produtos</a>
         </div>
       </div>
 
-      <aside class="mock-window" aria-label="Produto em destaque">
-        <div class="mock-window__top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-        <div class="product-preview">
-          <div class="makeup-art">
-            <span class="makeup-art__circle"></span>
-            <span class="makeup-art__stick"></span>
-            <span class="makeup-art__powder"></span>
+      <aside class="beauty-showcase">
+        <div class="product-hero-card">
+          <div class="product-illustration">
+            <span class="compact compact--one"></span>
+            <span class="compact compact--two"></span>
+            <span class="lipstick"></span>
+            <span class="brush"></span>
           </div>
           <span class="product-badge">Match 100%</span>
-          <h3>Base Natural Glow</h3>
-          <p class="muted">Base leve para pele oleosa com acabamento natural.</p>
+          <h2>Base Natural Glow</h2>
+          <p>Base leve para pele oleosa com acabamento natural.</p>
           <div class="preview-meta">
             <strong>R$ 65</strong>
             <span>oleosa • natural</span>
@@ -59,50 +65,25 @@
       </aside>
     </section>
 
-    <section class="container grid-section" id="perfil">
-      <div class="section-head">
-        <span class="kicker">Perfil</span>
-        <h2>Crie sua conta.</h2>
-        <p class="lead">Esses dados são usados pela estratégia de match-score da instância Makeup.</p>
-      </div>
-
-      <form class="form-card" id="profile-form">
-        <label>E-mail<input id="email" type="email" value="bia@email.com" required /></label>
-        <label>Nome<input id="name" type="text" value="Bia" required /></label>
-        <label>Tipo de pele<input id="skinType" type="text" value="oleosa" required /></label>
-        <label>Acabamento preferido<input id="finish" type="text" value="natural" required /></label>
-        <label>Preço máximo<input id="maxPrice" type="number" value="80" min="0" required /></label>
-        <button class="btn btn--block" type="submit">Salvar perfil</button>
-        <div id="profile-status" class="status"></div>
-      </form>
-    </section>
-
-    <section class="container grid-section" id="busca">
-      <div class="section-head">
-        <span class="kicker">Busca natural</span>
-        <h2>Pesquise produtos.</h2>
-        <p class="lead">Use frases como se estivesse conversando com a plataforma.</p>
-      </div>
-
-      <div class="search-panel">
-        <form class="search-card search-card--large" id="search-form">
-          <input id="query" type="text" value="base para pele oleosa acabamento natural" autocomplete="off" />
-          <button class="btn" type="submit">Buscar</button>
-        </form>
-        <div class="chips">
-          <button type="button" data-query="base para pele oleosa acabamento natural">Base pele oleosa</button>
-          <button type="button" data-query="batom vermelho matte para noite">Batom vermelho</button>
-          <button type="button" data-query="corretivo para olheiras acabamento natural">Corretivo</button>
-          <button type="button" data-query="blush glow pêssego">Blush glow</button>
-        </div>
-      </div>
-
-      <div id="results" class="products-grid"></div>
+    <section class="flow-steps">
+      <article>
+        <span>01</span>
+        <h2>Perfil</h2>
+        <p>Informe tipo de pele, acabamento preferido e preço máximo.</p>
+      </article>
+      <article>
+        <span>02</span>
+        <h2>Busca natural</h2>
+        <p>Pesquise como se estivesse conversando com uma consultora.</p>
+      </article>
+      <article>
+        <span>03</span>
+        <h2>Recomendações</h2>
+        <p>Veja produtos compatíveis, salve favoritos e compare opções.</p>
+      </article>
     </section>
   </main>
 
-  <footer class="footer">MakeupMatch • Framework HomeMatch</footer>
-
-  <script type="module" src="/static/script.js"></script>
+  <script src="/static/script.js"></script>
 </body>
 </html>

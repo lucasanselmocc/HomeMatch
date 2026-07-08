@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MakeupMatch | Recomendações</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="page page-recommendations">
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">MM</span>
+        <span class="brand-text">MakeupMatch</span>
+      </a>
+      <nav class="navbar__links">
+        <a href="/">Início</a>
+        <a href="/perfil.html">Perfil</a>
+        <a href="/buscar.html">Buscar</a>
+        <a class="active" href="/recomendacoes.html">Recomendações</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="page-intro page-intro--row">
+      <div>
+        <span class="kicker">Etapa 3 de 3</span>
+        <h1>Produtos favoritos e compatíveis.</h1>
+        <p class="lead">
+          Aqui ficam os produtos salvos durante a busca e as melhores recomendações para o perfil criado.
+        </p>
+      </div>
+      <div class="hero__actions">
+        <a class="btn btn--ghost" href="/buscar.html">Buscar mais</a>
+        <button class="btn" id="load-recommendations" type="button">Atualizar</button>
+      </div>
+    </section>
+
+    <section class="recommendation-layout">
+      <div class="recommendation-column">
+        <h2>Favoritos</h2>
+        <div id="saved-products" class="mini-list"></div>
+      </div>
+
+      <div class="recommendation-column">
+        <h2>Mais compatíveis</h2>
+        <div id="recommended-products" class="mini-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DatingMatch | Início</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body class="page page-home">
+  <header class="navbar">
+    <div class="navbar__inner">
+      <a class="brand" href="/">
+        <span class="brand-mark">DM</span>
+        <span class="brand-text">DatingMatch</span>
+      </a>
+      <nav class="navbar__links">
+        <a href="/">Início</a>
+        <a href="/perfil.html">Criar perfil</a>
+        <a href="/descobrir.html">Descobrir</a>
+        <a href="/matches.html">Matches</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="flow-hero">
+      <div class="flow-hero__content">
+        <span class="kicker">Instância Dating do framework HomeMatch</span>
+        <h1>Encontre pessoas compatíveis com seu perfil.</h1>
+        <p class="lead">
+          Crie seu perfil, busque por linguagem natural e veja pessoas ranqueadas por interesses,
+          hobbies, cidade e estilo de vida.
+        </p>
+
+        <form class="search-card" id="hero-search">
+          <input id="hero-query" type="text" value="pessoas que gostam de praia e praticam esportes" />
+          <button class="btn" type="submit">Buscar</button>
+        </form>
+
+        <div class="hero__actions">
+          <a class="btn" href="/perfil.html">Começar criando perfil</a>
+          <a class="btn btn--ghost" href="/descobrir.html">Ver perfis</a>
+        </div>
+      </div>
+
+      <aside class="hero-phone">
+        <div class="phone-card">
+          <div class="phone-card__image"></div>
+          <span class="profile-badge">Match 92%</span>
+          <h3>Marina, 24</h3>
+          <p>Praia, esportes, filmes e cafés tranquilos.</p>
+          <div class="preview-meta">
+            <strong>Natal</strong>
+            <span>ao ar livre</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="flow-steps">
+      <article>
+        <span>01</span>
+        <h2>Crie seu perfil</h2>
+        <p>Informe interesses, hobbies, cidade, preferências e estilo de vida.</p>
+      </article>
+      <article>
+        <span>02</span>
+        <h2>Descubra pessoas</h2>
+        <p>Pesquise em linguagem natural, como “pessoas que gostam de praia”.</p>
+      </article>
+      <article>
+        <span>03</span>
+        <h2>Veja matches</h2>
+        <p>Curta, salve e acompanhe os perfis mais compatíveis.</p>
+      </article>
+    </section>
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

@@ -89,7 +89,14 @@ class HomeMatchMatchScoreStrategy(AbstractMatchScoreStrategy):
                 favorite_profile=favorite_profile,
             )
 
-        return sorted(targets, key=lambda item: item.match_score, reverse=True)
+        return [
+            target
+            for target, _ in sorted(
+                scores,
+                key=lambda item: item[1],
+                reverse=True,
+            )
+        ]
 
     def persist(self, user: Any, scores: list[tuple[Any, int]]) -> None:
         """
