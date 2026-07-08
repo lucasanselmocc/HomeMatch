@@ -100,6 +100,7 @@ class CreateListPropertyView(generics.ListCreateAPIView):
             owner=self.request.user,
             validated_data=serializer.validated_data,
         )
+        serializer.instance = property_obj
 
         NomatimService.geocode(property_obj)
 
@@ -124,10 +125,11 @@ class RUDPropertyView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         property_obj = self.get_object()
 
-        get_homematch_framework().posts.update_post(
+        updated_property = get_homematch_framework().posts.update_post(
             post=property_obj,
             validated_data=serializer.validated_data,
         )
+        serializer.instance = updated_property
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

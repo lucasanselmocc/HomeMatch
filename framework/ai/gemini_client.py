@@ -26,7 +26,7 @@ class GeminiClient:
         api_key: str | None = None,
         model: str | None = None,
     ) -> None:
-        self.api_key = api_key or 'AIzaSyCqooKbJPMd4iWnROsk6gUoT0nLtDrF124'
+        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
 
         self.model_name = (
             model

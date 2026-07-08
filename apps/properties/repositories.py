@@ -107,18 +107,9 @@ class PhotoRepository(AbstractPhotoRepository):
         *,
         post: Any,
         image: Any,
-        order: int | None = None,
         validated_data: dict | None = None,
     ) -> Any:
-        """
-        Cria uma foto associada a um imóvel.
-
-        O framework chama o repositório com ``validated_data``. A aplicação
-        imobiliária antiga chamava com ``order``. A assinatura aceita os dois
-        formatos para manter compatibilidade.
-        """
-        validated_data = validated_data or {}
-        order = order if order is not None else validated_data.get("order", 1)
+        order = (validated_data or {}).get("order", 0)
         r2_key = upload_to_cloud(image)
 
         try:

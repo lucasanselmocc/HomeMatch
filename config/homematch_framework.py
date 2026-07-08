@@ -17,6 +17,8 @@ from apps.ai_analysis.strategy import HomeMatchAIAnalyzer
 from apps.properties.strategies import HomeMatchMatchScoreStrategy
 from apps.search.strategies import HomeMatchSearchPool
 
+from framework.instances.real_estate.app import create_real_estate_app
+
 
 def get_homematch_framework() -> HomeMatchFramework:
     """
